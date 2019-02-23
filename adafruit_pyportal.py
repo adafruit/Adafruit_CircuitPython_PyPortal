@@ -65,10 +65,10 @@ import rtc
 import supervisor
 
 try:
-    from settings import settings
+    from secrets import secrets
 except ImportError:
-    print("""WiFi settings are kept in settings.py, please add them there!
-the settings dictionary must contain 'ssid' and 'password' at a minimum""")
+    print("""WiFi settings are kept in secrets.py, please add them there!
+the secrets dictionary must contain 'ssid' and 'password' at a minimum""")
     raise
 
 __version__ = "0.0.0-auto.0"
@@ -529,9 +529,9 @@ class PyPortal:
         while not self._esp.is_connected:
             if self._debug:
                 print("Connecting to AP")
-            # settings dictionary must contain 'ssid' and 'password' at a minimum
+            # secrets dictionary must contain 'ssid' and 'password' at a minimum
             self.neo_status((100, 0, 0)) # red = not connected
-            self._esp.connect(settings)
+            self._esp.connect(secrets)
 
     def fetch(self):
         """Fetch data from the url we initialized with, perfom any parsing,
