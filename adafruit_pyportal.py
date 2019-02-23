@@ -46,7 +46,6 @@ Implementation Notes
 import os
 import time
 import gc
-import rtc
 import supervisor
 import board
 import busio
@@ -62,6 +61,7 @@ from adafruit_bitmap_font import bitmap_font
 from adafruit_display_text.text_area import TextArea
 from adafruit_esp32spi import adafruit_esp32spi
 import adafruit_esp32spi.adafruit_esp32spi_requests as requests
+import rtc
 
 try:
     from settings import settings
@@ -135,7 +135,7 @@ class PyPortal:
         self._debug = debug
 
         try:
-            self._backlight = pulseio.PWMOut(board.TFT_BACKLIGHT)
+            self._backlight = pulseio.PWMOut(board.TFT_BACKLIGHT)  # pylint: disable=no-member
         except ValueError:
             self._backlight = None
         self.set_backlight(1.0)  # turn on backlight
@@ -168,11 +168,13 @@ class PyPortal:
         # Make ESP32 connection
         if self._debug:
             print("Init ESP32")
+        # pylint: disable=no-member
         esp32_cs = DigitalInOut(microcontroller.pin.PB14) # PB14
         esp32_ready = DigitalInOut(microcontroller.pin.PB16)
         esp32_gpio0 = DigitalInOut(microcontroller.pin.PB15)
         esp32_reset = DigitalInOut(microcontroller.pin.PB17)
         spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
+        # pylint: enable=no-member
 
         if not self._uselocal:
             self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready, esp32_reset,
@@ -263,6 +265,7 @@ class PyPortal:
 
         if self._debug:
             print("Init touchscreen")
+        # pylint: disable=no-member
         self.touchscreen = adafruit_touchscreen.Touchscreen(microcontroller.pin.PB01,
                                                             microcontroller.pin.PB08,
                                                             microcontroller.pin.PA06,
@@ -270,6 +273,7 @@ class PyPortal:
                                                             calibration=((5200, 59000),
                                                                          (5800, 57000)),
                                                             size=(320, 240))
+        # pylint: enable=no-member
 
         self.set_backlight(1.0)  # turn on backlight
         gc.collect()
