@@ -575,7 +575,7 @@ class PyPortal:
                 supervisor.reload()
 
         if self._regexp_path:
-            import ure
+            import re
 
         # extract desired text/values from json
         if self._json_path:
@@ -583,7 +583,7 @@ class PyPortal:
                 values.append(PyPortal._json_traverse(json_out, path))
         elif self._regexp_path:
             for regexp in self._regexp_path:
-                values.append(ure.search(regexp, r.text).group(1))
+                values.append(re.search(regexp, r.text).group(1))
         else:
             values = r.text
 
