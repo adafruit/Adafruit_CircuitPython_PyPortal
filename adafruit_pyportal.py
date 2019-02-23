@@ -50,8 +50,8 @@ import board
 import busio
 import microcontroller
 from digitalio import DigitalInOut
-import adafruit_touchscreen
 import pulseio
+import adafruit_touchscreen
 import neopixel
 
 from adafruit_esp32spi import adafruit_esp32spi
@@ -112,16 +112,22 @@ class PyPortal:
     Can be a list of tuples for when there's a list of json_paths, for example
     :param text_color: The color of the text, in 0xRRGGBB format. Can be a list of colors for
     when there's multiple texts. Defaults to ``None``.
-    :param text_wrap: Whether or not to wrap text (for long text data chunks). Defaults to ``False``, no wrapping.
+    :param text_wrap: Whether or not to wrap text (for long text data chunks).
+    Defaults to ``False``, no wrapping.
     :param text_maxlen: The max length of the text for text wrapping. Defaults to 0.
-    :param image_json_path: The JSON traversal path for a background image to display. Defaults to ``None``.
+    :param image_json_path: The JSON traversal path for a background image to display.
+    Defaults to ``None``.
     :param image_resize: What size to resize the image we got from the json_path,
     make this a tuple of the width and height you want. Defaults to ``None``.
-    :param image_position: The position of the image on the display as an (x, y) tuple. Defaults to ``None``.
-    :param success_callback: A function we'll call if you like, when we fetch data successfully. Defaults to ``None``.
-    :param str caption_text: The text of your caption, a fixed text not changed by the data we get. Defaults to ``None``.
+    :param image_position: The position of the image on the display as an (x, y) tuple.
+    Defaults to ``None``.
+    :param success_callback: A function we'll call if you like, when we fetch data successfully.
+    Defaults to ``None``.
+    :param str caption_text: The text of your caption, a fixed text not changed by the data we get.
+    Defaults to ``None``.
     :param str caption_font: The path to the font file for your caption. Defaults to ``None``.
-    :param caption_position: The position of your caption on the display as an (x, y) tuple. Defaults to ``None``.
+    :param caption_position: The position of your caption on the display as an (x, y) tuple.
+    Defaults to ``None``.
     :param caption_color: The color of your caption. Must be a hex value, e.g. ``0x808000``.
     :param debug: Turn on debug print outs. Defaults to False.
 
@@ -333,7 +339,8 @@ class PyPortal:
     def preload_font(self, glyphs=None):
         """Preload font.
 
-        :param glyphs: The font glyphs to load. Defaults to ``None``, uses alphanumeric glyphs if None.
+        :param glyphs: The font glyphs to load. Defaults to ``None``,
+        uses alphanumeric glyphs if None.
 
         """
         if not glyphs:
