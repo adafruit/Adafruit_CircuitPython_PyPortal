@@ -50,8 +50,8 @@ import board
 import busio
 import microcontroller
 from digitalio import DigitalInOut
-import adafruit_touchscreen
 import pulseio
+import adafruit_touchscreen
 import neopixel
 
 from adafruit_esp32spi import adafruit_esp32spi
@@ -84,14 +84,14 @@ LOCALFILE = "local.txt"
 
 
 class Fake_Requests:
-    """For requests using a local file instead of the network."""
+    """For faking 'requests' using a local file instead of the network."""
     def __init__(self, filename):
         self._filename = filename
         with open(filename, "r") as file:
             self.text = file.read()
 
     def json(self):
-        """json for local requests."""
+        """json parsed version for local requests."""
         import json
         return json.loads(self.text)
 
@@ -100,38 +100,48 @@ class PyPortal:
     """Class representing the Adafruit PyPortal.
 
     :param url: The URL of your data source. Defaults to ``None``.
-    :param json_path: Defaults to ``None``.
-    :param regexp_path: Defaults to ``None``.
-    :param default_bg: The path to your default background file. Defaults to ``None``.
-    :param status_neopixel: The pin for the status NeoPixel. Use ``board.NeoPixel`` for the
-                            on-board NeoPixel. Defaults to ``None``.
-    :param str text_font: The path to your font file for your text.
-    :param text_position: The position of your text on the display.
-    :param text_color: The color of the text. Defaults to ``None``.
-    :param text_wrap: The location where the text wraps. Defaults to ``None``.
-    :param text_maxlen: The max length of the text. Defaults to ``None``.
-    :param image_json_path: Defaults to ``None``.
-    :param image_resize: Defaults to ``None``.
-    :param image_position: The position of the image on the display. Defaults to ``None``.
-    :param time_between_requests: Defaults to ``None``.
-    :param success_callback: Defaults to ``None``.
-    :param str caption_text: The text of your caption. Defaults to ``None``.
+    :param json_path: The list of json traversal to get data out of. Can be list of lists for
+                      multiple data points. Defaults to ``None`` to not use json.
+    :param regexp_path: The list of regexp strings to get data out (use a single regexp group). Can
+                        be list of regexps for multiple data points. Defaults to ``None`` to not
+                        use regexp.
+    :param default_bg: The path to your default background image file. Defaults to ``None``.
+    :param status_neopixel: The pin for the status NeoPixel. Use ``board.NEOPIXEL`` for the on-board
+                            NeoPixel. Defaults to ``None``, no status LED
+    :param str text_font: The path to your font file for your data text display.
+    :param text_position: The position of your extracted text on the display in an (x, y) tuple.
+                          Can be a list of tuples for when there's a list of json_paths, for example
+    :param text_color: The color of the text, in 0xRRGGBB format. Can be a list of colors for when
+                       there's multiple texts. Defaults to ``None``.
+    :param text_wrap: Whether or not to wrap text (for long text data chunks). Defaults to
+                      ``False``, no wrapping.
+    :param text_maxlen: The max length of the text for text wrapping. Defaults to 0.
+    :param image_json_path: The JSON traversal path for a background image to display. Defaults to
+                            ``None``.
+    :param image_resize: What size to resize the image we got from the json_path, make this a tuple
+                         of the width and height you want. Defaults to ``None``.
+    :param image_position: The position of the image on the display as an (x, y) tuple. Defaults to
+                           ``None``.
+    :param success_callback: A function we'll call if you like, when we fetch data successfully.
+                             Defaults to ``None``.
+    :param str caption_text: The text of your caption, a fixed text not changed by the data we get.
+                             Defaults to ``None``.
     :param str caption_font: The path to the font file for your caption. Defaults to ``None``.
-    :param caption_position: The position of your caption on the display. Defaults to ``None``.
+    :param caption_position: The position of your caption on the display as an (x, y) tuple.
+                             Defaults to ``None``.
     :param caption_color: The color of your caption. Must be a hex value, e.g. ``0x808000``.
-    :param debug: Turn on debug features. Defaults to False.
+    :param debug: Turn on debug print outs. Defaults to False.
 
     """
     # pylint: disable=too-many-instance-attributes, too-many-locals, too-many-branches, too-many-statements
     def __init__(self, *, url=None, json_path=None, regexp_path=None,
                  default_bg=None, status_neopixel=None,
                  text_font=None, text_position=None, text_color=0x808080,
-                 text_wrap=0, text_maxlen=0,
+                 text_wrap=False, text_maxlen=0,
                  image_json_path=None, image_resize=None, image_position=None,
-                 time_between_requests=60, success_callback=None,
                  caption_text=None, caption_font=None, caption_position=None,
                  caption_color=0x808080,
-                 debug=False):
+                 success_callback=None, debug=False):
 
         self._debug = debug
 
@@ -151,7 +161,6 @@ class PyPortal:
             self._json_path = None
 
         self._regexp_path = regexp_path
-        self._time_between_requests = time_between_requests
         self._success_callback = success_callback
 
         if status_neopixel:
@@ -170,16 +179,20 @@ class PyPortal:
         if self._debug:
             print("Init ESP32")
         # pylint: disable=no-member
-        esp32_cs = DigitalInOut(microcontroller.pin.PB14) # PB14
+        esp32_cs = DigitalInOut(microcontroller.pin.PB14)
         esp32_ready = DigitalInOut(microcontroller.pin.PB16)
         esp32_gpio0 = DigitalInOut(microcontroller.pin.PB15)
         esp32_reset = DigitalInOut(microcontroller.pin.PB17)
+        #esp32_ready = DigitalInOut(board.ESP_BUSY)
+        #esp32_gpio0 = DigitalInOut(board.ESP_GPIO0)
+        #esp32_reset = DigitalInOut(board.ESP_RESET)
+        #esp32_cs = DigitalInOut(board.ESP_CS)
         spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
         # pylint: enable=no-member
 
         if not self._uselocal:
-            self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready, esp32_reset,
-                                                         esp32_gpio0)
+            self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready,
+                                                         esp32_reset, esp32_gpio0)
             #self._esp._debug = 1
             for _ in range(3): # retries
                 try:
@@ -280,7 +293,7 @@ class PyPortal:
         gc.collect()
 
     def set_background(self, filename):
-        """The background image.
+        """The background image to a bitmap file.
 
         :param filename: The name of the chosen background image file.
 
@@ -311,7 +324,7 @@ class PyPortal:
         board.DISPLAY.wait_for_frame()
 
     def set_backlight(self, val):
-        """The backlight.
+        """Adjust the TFT backlight.
 
         :param val: The backlight brightness. Use a value between ``0`` and ``1``, where ``0`` is
                     off, and ``1`` is 100% brightness.
@@ -325,11 +338,14 @@ class PyPortal:
             board.DISPLAY.brightness = val
 
     def preload_font(self, glyphs=None):
+        # pylint: disable=line-too-long
         """Preload font.
 
-        :param glyphs: The font glyphs to load. Defaults to ``None``, uses built in glyphs if None.
+        :param glyphs: The font glyphs to load. Defaults to ``None``, uses alphanumeric glyphs if
+                       None.
 
         """
+        # pylint: enable=line-too-long
         if not glyphs:
             glyphs = b'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-!,. "\'?!'
         print("Preloading font glyphs:", glyphs)
@@ -337,14 +353,16 @@ class PyPortal:
             self._text_font.load_glyphs(glyphs)
 
     def set_caption(self, caption_text, caption_position, caption_color):
+        # pylint: disable=line-too-long
         """A caption. Requires setting ``caption_font`` in init!
 
         :param caption_text: The text of the caption.
         :param caption_position: The position of the caption text.
-        :param caption_color: The color of your caption text. Must be a hex value,
-                              e.g. ``0x808000``.
+        :param caption_color: The color of your caption text. Must be a hex value, e.g.
+                              ``0x808000``.
 
         """
+        # pylint: enable=line-too-long
         if self._debug:
             print("Setting caption to", caption_text)
 
@@ -352,7 +370,7 @@ class PyPortal:
             return  # nothing to do!
 
         if self._caption:
-            self._caption._update_text(str(caption_text))  # pylint: disable=protected-access, undefined-variable
+            self._caption._update_text(str(caption_text))  # pylint: disable=protected-access
             board.DISPLAY.refresh_soon()
             board.DISPLAY.wait_for_frame()
             return
@@ -364,9 +382,9 @@ class PyPortal:
         self.splash.append(self._caption)
 
     def set_text(self, val, index=0):
-        """Display text.
+        """Display text, with indexing into our list of text boxes.
 
-        :param str val: The text to be displayed.
+        :param str val: The text to be displayed
         :param index: Defaults to 0.
 
         """
@@ -402,7 +420,7 @@ class PyPortal:
                 self.splash.append(self._text[index])
 
     def neo_status(self, value):
-        """The status NeoPixeel.
+        """The status NeoPixel.
 
         :param value: The color to change the NeoPixel.
 
@@ -414,7 +432,7 @@ class PyPortal:
     def play_file(file_name):
         """Play a wav file.
 
-        :param str file_name: The name of the wav file.
+        :param str file_name: The name of the wav file to play on the speaker.
 
         """
         #self._speaker_enable.value = True
@@ -435,11 +453,13 @@ class PyPortal:
         return value
 
     def get_local_time(self, location=None):
-        """The local time.
+        # pylint: disable=line-too-long
+        """Fetch and "set" the local time of this microcontroller to the local time at the location, using an internet time API.
 
-        :param str location: Your city and state, e.g. ``"New York, New York"``.
+        :param str location: Your city and country, e.g. ``"New York, US"``.
 
         """
+        # pylint: enable=line-too-long
         self._connect_esp()
         api_url = None
         if not location:
@@ -469,10 +489,10 @@ class PyPortal:
         gc.collect()
 
     def wget(self, url, filename):
-        """Obtain a stream.
+        """Download a url and save to filename location, like the command wget.
 
         :param url: The URL from which to obtain the data.
-        :param filename: The name of the file to save the data.
+        :param filename: The name of the file to save the data to.
 
         """
         print("Fetching stream from", url)
@@ -514,7 +534,8 @@ class PyPortal:
             self._esp.connect(settings)
 
     def fetch(self):
-        """Fetch data."""
+        """Fetch data from the url we initialized with, perfom any parsing,
+        and display text or graphics. This function does pretty much everything"""
         json_out = None
         image_url = None
         values = []
@@ -618,11 +639,11 @@ class PyPortal:
         return values
 
     def show_QR(self, qr_data, qr_size=128, position=None):  # pylint: disable=invalid-name
-        """Display a QR code.
+        """Display a QR code on the TFT
 
         :param qr_data: The data for the QR code.
         :param int qr_size: The size of the QR code in pixels.
-        :param position: The position of the QR code on the display.
+        :param position: The (x, y) tuple position of the QR code on the display.
 
         """
         import adafruit_miniqr
@@ -674,7 +695,7 @@ class PyPortal:
 
             for b in range(BLOCK_SIZE):
                 # load this line of data in, as many time as block size
-                qr_bitmap._load_row(Y_OFFSET + y*BLOCK_SIZE+b, line) #pylint: disable=protected-access
+                qr_bitmap._load_row(Y_OFFSET + y*BLOCK_SIZE+b, line)  # pylint: disable=protected-access
         # pylint: enable=invalid-name
 
         # display the bitmap using our palette
@@ -694,7 +715,7 @@ class PyPortal:
     # return a list of lines with wordwrapping
     @staticmethod
     def wrap_nicely(string, max_chars):
-        """A list of lines with word wrapping.
+        """A helper that will return a list of lines with word-break wrapping.
 
         :param str string: The text to be wrapped.
         :param int max_chars: The maximum number of characters on a line before wrapping.
