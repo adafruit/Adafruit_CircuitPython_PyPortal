@@ -2,6 +2,4 @@ Adafruit-Blinka
 adafruit-circuitpython-busdevice
 adafruit-circuitpython-touchscreen
 adafruit-circuitpython-esp32spi
-adafruit-circuitpython-bitmap-font
-adafruit-circuitpython-display-text
 adafruit-circuitpython-neopixel
