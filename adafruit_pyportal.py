@@ -46,13 +46,8 @@ Implementation Notes
 import os
 import time
 import gc
-import supervisor
 import board
 import busio
-import pulseio
-import audioio
-import displayio
-import neopixel
 import microcontroller
 from digitalio import DigitalInOut
 import adafruit_touchscreen
@@ -61,7 +56,12 @@ from adafruit_bitmap_font import bitmap_font
 from adafruit_display_text.text_area import TextArea
 from adafruit_esp32spi import adafruit_esp32spi
 import adafruit_esp32spi.adafruit_esp32spi_requests as requests
+import neopixel
+import displayio
+import audioio
+import pulseio
 import rtc
+import supervisor
 
 try:
     from settings import settings
