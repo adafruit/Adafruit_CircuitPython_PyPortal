@@ -327,12 +327,13 @@ class PyPortal:
             board.DISPLAY.brightness = val
 
     def preload_font(self, glyphs=None):
+        # pylint: disable=line-too-long
         """Preload font.
 
-        :param glyphs: The font glyphs to load. Defaults to ``None``,
-        uses alphanumeric glyphs if None.
+        :param glyphs: The font glyphs to load. Defaults to ``None``, uses alphanumeric glyphs if None.
 
         """
+        # pylint: enable=line-too-long
         if not glyphs:
             glyphs = b'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-!,. "\'?!'
         print("Preloading font glyphs:", glyphs)
@@ -340,14 +341,15 @@ class PyPortal:
             self._text_font.load_glyphs(glyphs)
 
     def set_caption(self, caption_text, caption_position, caption_color):
+        # pylint: disable=line-too-long
         """A caption. Requires setting ``caption_font`` in init!
 
         :param caption_text: The text of the caption.
         :param caption_position: The position of the caption text.
-        :param caption_color: The color of your caption text. Must be a hex value,
-                              e.g. ``0x808000``.
+        :param caption_color: The color of your caption text. Must be a hex value, e.g. ``0x808000``.
 
         """
+        # pylint: enable=line-too-long
         if self._debug:
             print("Setting caption to", caption_text)
 
@@ -438,12 +440,13 @@ class PyPortal:
         return value
 
     def get_local_time(self, location=None):
-        """Fetch and "set" the local time of this microcontroller to the local
-        time at the location, using an internet time API.
+        # pylint: disable=line-too-long
+        """Fetch and "set" the local time of this microcontroller to the local time at the location, using an internet time API.
 
         :param str location: Your city and country, e.g. ``"New York, US"``.
 
         """
+        # pylint: enable=line-too-long
         self._connect_esp()
         api_url = None
         if not location:
