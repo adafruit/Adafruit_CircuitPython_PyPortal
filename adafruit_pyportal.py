@@ -53,7 +53,6 @@ from digitalio import DigitalInOut
 import pulseio
 import adafruit_touchscreen
 import neopixel
-import adafruit_sdcard
 
 from adafruit_esp32spi import adafruit_esp32spi
 import adafruit_esp32spi.adafruit_esp32spi_requests as requests
@@ -61,6 +60,7 @@ from adafruit_display_text.text_area import TextArea
 from adafruit_bitmap_font import bitmap_font
 
 import storage
+import adafruit_sdcard
 import displayio
 import audioio
 import rtc
