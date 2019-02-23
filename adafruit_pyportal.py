@@ -51,15 +51,16 @@ import busio
 import microcontroller
 from digitalio import DigitalInOut
 import adafruit_touchscreen
+import pulseio
+import neopixel
 
-from adafruit_bitmap_font import bitmap_font
-from adafruit_display_text.text_area import TextArea
 from adafruit_esp32spi import adafruit_esp32spi
 import adafruit_esp32spi.adafruit_esp32spi_requests as requests
-import neopixel
+from adafruit_display_text.text_area import TextArea
+from adafruit_bitmap_font import bitmap_font
+
 import displayio
 import audioio
-import pulseio
 import rtc
 import supervisor
 
