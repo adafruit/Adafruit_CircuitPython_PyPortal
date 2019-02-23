@@ -97,41 +97,31 @@ class Fake_Requests:
 
 
 class PyPortal:
+    # pylint: disable=line-too-long
     """Class representing the Adafruit PyPortal.
 
     :param url: The URL of your data source. Defaults to ``None``.
-    :param json_path: The list of json traversal to get data out of.
-    Can be list of lists for multiple data points. Defaults to ``None`` to not use json.
-    :param regexp_path: The list of regexp strings to get data out (use a single regexp group).
-    Can be list of regexps for multiple data points. Defaults to ``None`` to not use regexp.
+    :param json_path: The list of json traversal to get data out of. Can be list of lists for multiple data points. Defaults to ``None`` to not use json.
+    :param regexp_path: The list of regexp strings to get data out (use a single regexp group). Can be list of regexps for multiple data points. Defaults to ``None`` to not use regexp.
     :param default_bg: The path to your default background image file. Defaults to ``None``.
-    :param status_neopixel: The pin for the status NeoPixel. Use ``board.NEOPIXEL`` for the
-                            on-board NeoPixel. Defaults to ``None``, no status LED
+    :param status_neopixel: The pin for the status NeoPixel. Use ``board.NEOPIXEL`` for the on-board NeoPixel. Defaults to ``None``, no status LED
     :param str text_font: The path to your font file for your data text display.
-    :param text_position: The position of your extracted text on the display in an (x, y) tuple.
-    Can be a list of tuples for when there's a list of json_paths, for example
-    :param text_color: The color of the text, in 0xRRGGBB format. Can be a list of colors for
-    when there's multiple texts. Defaults to ``None``.
-    :param text_wrap: Whether or not to wrap text (for long text data chunks).
-    Defaults to ``False``, no wrapping.
+    :param text_position: The position of your extracted text on the display in an (x, y) tuple. Can be a list of tuples for when there's a list of json_paths, for example
+    :param text_color: The color of the text, in 0xRRGGBB format. Can be a list of colors for when there's multiple texts. Defaults to ``None``.
+    :param text_wrap: Whether or not to wrap text (for long text data chunks). Defaults to ``False``, no wrapping.
     :param text_maxlen: The max length of the text for text wrapping. Defaults to 0.
-    :param image_json_path: The JSON traversal path for a background image to display.
-    Defaults to ``None``.
-    :param image_resize: What size to resize the image we got from the json_path,
-    make this a tuple of the width and height you want. Defaults to ``None``.
-    :param image_position: The position of the image on the display as an (x, y) tuple.
-    Defaults to ``None``.
-    :param success_callback: A function we'll call if you like, when we fetch data successfully.
-    Defaults to ``None``.
-    :param str caption_text: The text of your caption, a fixed text not changed by the data we get.
-    Defaults to ``None``.
+    :param image_json_path: The JSON traversal path for a background image to display. Defaults to ``None``.
+    :param image_resize: What size to resize the image we got from the json_path, make this a tuple of the width and height you want. Defaults to ``None``.
+    :param image_position: The position of the image on the display as an (x, y) tuple. Defaults to ``None``.
+    :param success_callback: A function we'll call if you like, when we fetch data successfully. Defaults to ``None``.
+    :param str caption_text: The text of your caption, a fixed text not changed by the data we get. Defaults to ``None``.
     :param str caption_font: The path to the font file for your caption. Defaults to ``None``.
-    :param caption_position: The position of your caption on the display as an (x, y) tuple.
-    Defaults to ``None``.
+    :param caption_position: The position of your caption on the display as an (x, y) tuple. Defaults to ``None``.
     :param caption_color: The color of your caption. Must be a hex value, e.g. ``0x808000``.
     :param debug: Turn on debug print outs. Defaults to False.
 
     """
+    # pylint: enable=line-too-long
     # pylint: disable=too-many-instance-attributes, too-many-locals, too-many-branches, too-many-statements
     def __init__(self, *, url=None, json_path=None, regexp_path=None,
                  default_bg=None, status_neopixel=None,
