@@ -48,11 +48,13 @@ import time
 import gc
 import board
 import busio
+import storage
 import microcontroller
 from digitalio import DigitalInOut
 import pulseio
 import adafruit_touchscreen
 import neopixel
+import adafruit_sdcard
 
 from adafruit_esp32spi import adafruit_esp32spi
 import adafruit_esp32spi.adafruit_esp32spi_requests as requests
@@ -206,6 +208,17 @@ class PyPortal:
                 raise RuntimeError("Was not able to find ESP32")
 
             requests.set_interface(self._esp)
+
+        if self._debug:
+            print("Init SD Card")
+        sd_cs = DigitalInOut(board.SD_CS)
+        self._sdcard = None
+        try:
+            self._sdcard = adafruit_sdcard.SDCard(spi, sd_cs)
+            vfs = storage.VfsFat(self._sdcard)
+            storage.mount(vfs, "/sd")
+        except OSError as e:
+            print("No SD card found:", e)
 
         if self._debug:
             print("Init display")
@@ -488,11 +501,12 @@ class PyPortal:
         response = None
         gc.collect()
 
-    def wget(self, url, filename):
+    def wget(self, url, filename, *, chunk_size=12000):
         """Download a url and save to filename location, like the command wget.
 
         :param url: The URL from which to obtain the data.
         :param filename: The name of the file to save the data to.
+        :param chunk_size: how much data to read/write at a time.
 
         """
         print("Fetching stream from", url)
@@ -506,18 +520,19 @@ class PyPortal:
         remaining = content_length
         print("Saving data to ", filename)
         stamp = time.monotonic()
-        with open(filename, "wb") as file:
-            for i in r.iter_content(min(remaining, 12000)):  # huge chunks!
-                self.neo_status((0, 100, 100))
-                remaining -= len(i)
-                file.write(i)
-                if self._debug:
-                    print("Read %d bytes, %d remaining" % (content_length-remaining, remaining))
-                else:
-                    print(".", end='')
-                if not remaining:
-                    break
-                self.neo_status((100, 100, 0))
+        file = open(filename, "wb")
+        for i in r.iter_content(min(remaining, chunk_size)):  # huge chunks!
+            self.neo_status((0, 100, 100))
+            remaining -= len(i)
+            file.write(i)
+            if self._debug:
+                print("Read %d bytes, %d remaining" % (content_length-remaining, remaining))
+            else:
+                print(".", end='')
+            if not remaining:
+                break
+            self.neo_status((100, 100, 0))
+        file.close()
 
         r.close()
         stamp = time.monotonic() - stamp
@@ -606,8 +621,17 @@ class PyPortal:
                 print("convert URL:", image_url)
                 # convert image to bitmap and cache
                 #print("**not actually wgetting**")
-                self.wget(image_url, "/cache.bmp")
-                self.set_background("/cache.bmp")
+                filename = "/cache.bmp"
+                chunk_size = 12000      # default chunk size is 12K (for QSPI)
+                if self._sdcard:
+                    filename = "/sd" + filename
+                    chunk_size = 512  # current bug in big SD writes -> stick to 1 block
+                try:
+                    self.wget(image_url, filename, chunk_size=chunk_size)
+                except OSError as e:
+                    print(e)
+                    raise OSError("""\n\nNo writable filesystem found for saving datastream. Insert an SD card or set internal filesystem to be unsafe by setting 'disable_concurrent_write_protection' in the mount options in boot.py""") # pylint: disable=line-too-long
+                self.set_background(filename)
             except ValueError as error:
                 print("Error displaying cached image. " + error.args[0])
                 self.set_background(self._default_bg)
