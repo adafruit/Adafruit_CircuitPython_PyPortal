@@ -48,7 +48,6 @@ import time
 import gc
 import board
 import busio
-import storage
 import microcontroller
 from digitalio import DigitalInOut
 import pulseio
@@ -61,6 +60,7 @@ import adafruit_esp32spi.adafruit_esp32spi_requests as requests
 from adafruit_display_text.text_area import TextArea
 from adafruit_bitmap_font import bitmap_font
 
+import storage
 import displayio
 import audioio
 import rtc
@@ -217,8 +217,8 @@ class PyPortal:
             self._sdcard = adafruit_sdcard.SDCard(spi, sd_cs)
             vfs = storage.VfsFat(self._sdcard)
             storage.mount(vfs, "/sd")
-        except OSError as e:
-            print("No SD card found:", e)
+        except OSError as error:
+            print("No SD card found:", error)
 
         if self._debug:
             print("Init display")
@@ -628,8 +628,8 @@ class PyPortal:
                     chunk_size = 512  # current bug in big SD writes -> stick to 1 block
                 try:
                     self.wget(image_url, filename, chunk_size=chunk_size)
-                except OSError as e:
-                    print(e)
+                except OSError as error:
+                    print(error)
                     raise OSError("""\n\nNo writable filesystem found for saving datastream. Insert an SD card or set internal filesystem to be unsafe by setting 'disable_concurrent_write_protection' in the mount options in boot.py""") # pylint: disable=line-too-long
                 self.set_background(filename)
             except ValueError as error:
