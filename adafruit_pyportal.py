@@ -100,18 +100,23 @@ class PyPortal:
     """Class representing the Adafruit PyPortal.
 
     :param url: The URL of your data source. Defaults to ``None``.
-    :param json_path: The list of json traversal to get data out of. Can be list of lists for multiple data points. Defaults to ``None`` to not use json.
-    :param regexp_path: The list of regexp strings to get data out (use a single regexp group). Can be list of regexps for multiple data points. Defaults to ``None`` to not use regexp.
+    :param json_path: The list of json traversal to get data out of.
+    Can be list of lists for multiple data points. Defaults to ``None`` to not use json.
+    :param regexp_path: The list of regexp strings to get data out (use a single regexp group).
+    Can be list of regexps for multiple data points. Defaults to ``None`` to not use regexp.
     :param default_bg: The path to your default background image file. Defaults to ``None``.
     :param status_neopixel: The pin for the status NeoPixel. Use ``board.NEOPIXEL`` for the
                             on-board NeoPixel. Defaults to ``None``, no status LED
     :param str text_font: The path to your font file for your data text display.
-    :param text_position: The position of your extracted text on the display in an (x, y) tuple. Can be a list of tuples for when there's a list of json_paths, for example
-    :param text_color: The color of the text, in 0xRRGGBB format. Can be a list of colors for when there's multiple texts. Defaults to ``None``.
+    :param text_position: The position of your extracted text on the display in an (x, y) tuple.
+    Can be a list of tuples for when there's a list of json_paths, for example
+    :param text_color: The color of the text, in 0xRRGGBB format. Can be a list of colors for
+    when there's multiple texts. Defaults to ``None``.
     :param text_wrap: Whether or not to wrap text (for long text data chunks). Defaults to ``False``, no wrapping.
     :param text_maxlen: The max length of the text for text wrapping. Defaults to 0.
     :param image_json_path: The JSON traversal path for a background image to display. Defaults to ``None``.
-    :param image_resize: What size to resize the image we got from the json_path, make this a tuple of the width and height you want. Defaults to ``None``.
+    :param image_resize: What size to resize the image we got from the json_path,
+    make this a tuple of the width and height you want. Defaults to ``None``.
     :param image_position: The position of the image on the display as an (x, y) tuple. Defaults to ``None``.
     :param success_callback: A function we'll call if you like, when we fetch data successfully. Defaults to ``None``.
     :param str caption_text: The text of your caption, a fixed text not changed by the data we get. Defaults to ``None``.
@@ -149,7 +154,6 @@ class PyPortal:
             self._json_path = None
 
         self._regexp_path = regexp_path
-        self._time_between_requests = time_between_requests
         self._success_callback = success_callback
 
         if status_neopixel:
@@ -168,16 +172,20 @@ class PyPortal:
         if self._debug:
             print("Init ESP32")
         # pylint: disable=no-member
-        esp32_cs = DigitalInOut(microcontroller.pin.PB14) # PB14
+        esp32_cs = DigitalInOut(microcontroller.pin.PB14)
         esp32_ready = DigitalInOut(microcontroller.pin.PB16)
         esp32_gpio0 = DigitalInOut(microcontroller.pin.PB15)
         esp32_reset = DigitalInOut(microcontroller.pin.PB17)
+        #esp32_ready = DigitalInOut(board.ESP_BUSY)
+        #esp32_gpio0 = DigitalInOut(board.ESP_GPIO0)
+        #esp32_reset = DigitalInOut(board.ESP_RESET)
+        #esp32_cs = DigitalInOut(board.ESP_CS)
         spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
         # pylint: enable=no-member
 
         if not self._uselocal:
-            self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready, esp32_reset,
-                                                         esp32_gpio0)
+            self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready,
+                                                         esp32_reset, esp32_gpio0)
             #self._esp._debug = 1
             for _ in range(3): # retries
                 try:
@@ -278,7 +286,7 @@ class PyPortal:
         gc.collect()
 
     def set_background(self, filename):
-        """The background image.
+        """The background image to a bitmap file.
 
         :param filename: The name of the chosen background image file.
 
@@ -309,7 +317,7 @@ class PyPortal:
         board.DISPLAY.wait_for_frame()
 
     def set_backlight(self, val):
-        """The backlight.
+        """Adjust the TFT backlight.
 
         :param val: The backlight brightness. Use a value between ``0`` and ``1``, where ``0`` is
                     off, and ``1`` is 100% brightness.
@@ -325,7 +333,7 @@ class PyPortal:
     def preload_font(self, glyphs=None):
         """Preload font.
 
-        :param glyphs: The font glyphs to load. Defaults to ``None``, uses built in glyphs if None.
+        :param glyphs: The font glyphs to load. Defaults to ``None``, uses alphanumeric glyphs if None.
 
         """
         if not glyphs:
@@ -362,9 +370,9 @@ class PyPortal:
         self.splash.append(self._caption)
 
     def set_text(self, val, index=0):
-        """Display text.
+        """Display text, with indexing into our list of text boxes.
 
-        :param str val: The text to be displayed.
+        :param str val: The text to be displayed
         :param index: Defaults to 0.
 
         """
@@ -400,7 +408,7 @@ class PyPortal:
                 self.splash.append(self._text[index])
 
     def neo_status(self, value):
-        """The status NeoPixeel.
+        """The status NeoPixel.
 
         :param value: The color to change the NeoPixel.
 
@@ -412,7 +420,7 @@ class PyPortal:
     def play_file(file_name):
         """Play a wav file.
 
-        :param str file_name: The name of the wav file.
+        :param str file_name: The name of the wav file to play on the speaker.
 
         """
         #self._speaker_enable.value = True
@@ -433,9 +441,10 @@ class PyPortal:
         return value
 
     def get_local_time(self, location=None):
-        """The local time.
+        """Fetch and "set" the local time of this microcontroller to the local
+        time at the location, using an internet time API.
 
-        :param str location: Your city and state, e.g. ``"New York, New York"``.
+        :param str location: Your city and country, e.g. ``"New York, US"``.
 
         """
         self._connect_esp()
@@ -467,10 +476,10 @@ class PyPortal:
         gc.collect()
 
     def wget(self, url, filename):
-        """Obtain a stream.
+        """Download a url and save to filename location, like the command wget.
 
         :param url: The URL from which to obtain the data.
-        :param filename: The name of the file to save the data.
+        :param filename: The name of the file to save the data to.
 
         """
         print("Fetching stream from", url)
@@ -512,7 +521,8 @@ class PyPortal:
             self._esp.connect(settings)
 
     def fetch(self):
-        """Fetch data."""
+        """Fetch data from the url we initialized with, perfom any parsing,
+        and display text or graphics. This function does pretty much everything"""
         json_out = None
         image_url = None
         values = []
@@ -616,11 +626,11 @@ class PyPortal:
         return values
 
     def show_QR(self, qr_data, qr_size=128, position=None):  # pylint: disable=invalid-name
-        """Display a QR code.
+        """Display a QR code on the TFT
 
         :param qr_data: The data for the QR code.
         :param int qr_size: The size of the QR code in pixels.
-        :param position: The position of the QR code on the display.
+        :param position: The (x, y) tuple position of the QR code on the display.
 
         """
         import adafruit_miniqr
@@ -692,7 +702,7 @@ class PyPortal:
     # return a list of lines with wordwrapping
     @staticmethod
     def wrap_nicely(string, max_chars):
-        """A list of lines with word wrapping.
+        """A helper that will return a list of lines with word-break wrapping.
 
         :param str string: The text to be wrapped.
         :param int max_chars: The maximum number of characters on a line before wrapping.
