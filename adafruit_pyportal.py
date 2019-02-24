@@ -107,7 +107,7 @@ class PyPortal:
     :param regexp_path: The list of regexp strings to get data out (use a single regexp group). Can
                         be list of regexps for multiple data points. Defaults to ``None`` to not
                         use regexp.
-    :param default_bg: The path to your default background image file. Defaults to ``None``.
+    :param default_bg: The path to your default background image file or a hex color. Defaults to 0x000000.
     :param status_neopixel: The pin for the status NeoPixel. Use ``board.NEOPIXEL`` for the on-board
                             NeoPixel. Defaults to ``None``, no status LED
     :param str text_font: The path to your font file for your data text display.
@@ -137,7 +137,7 @@ class PyPortal:
     """
     # pylint: disable=too-many-instance-attributes, too-many-locals, too-many-branches, too-many-statements
     def __init__(self, *, url=None, json_path=None, regexp_path=None,
-                 default_bg=None, status_neopixel=None,
+                 default_bg=0x000000, status_neopixel=None,
                  text_font=None, text_position=None, text_color=0x808080,
                  text_wrap=False, text_maxlen=0,
                  image_json_path=None, image_resize=None, image_position=None,
@@ -312,32 +312,34 @@ class PyPortal:
 
         gc.collect()
 
-    def set_background(self, filename):
+    def set_background(self, file_or_color):
         """The background image to a bitmap file.
 
-        :param filename: The name of the chosen background image file.
+        :param file_or_color: The filename of the chosen background image, or a hex color.
 
         """
-        print("Set background to ", filename)
-        try:
+        print("Set background to ", file_or_color)
+        while len(self._bg_group):
             self._bg_group.pop()
-        except IndexError:
-            pass  # s'ok, we'll fix to test once we can
 
-        if not filename:
+        if not file_or_color:
             return  # we're done, no background desired
         if self._bg_file:
             self._bg_file.close()
-        self._bg_file = open(filename, "rb")
-        background = displayio.OnDiskBitmap(self._bg_file)
-        try:
+        if isinstance(file_or_color, str): # its a filenme:
+            self._bg_file = open(file_or_color, "rb")
+            background = displayio.OnDiskBitmap(self._bg_file)
             self._bg_sprite = displayio.TileGrid(background,
-                                                 pixel_shader=displayio.ColorConverter(),
-                                                 position=(0, 0))
-        except AttributeError:
-            self._bg_sprite = displayio.Sprite(background, pixel_shader=displayio.ColorConverter(),
-                                               position=(0, 0))
-
+                                                pixel_shader=displayio.ColorConverter(),
+                                                position=(0, 0))
+        elif isinstance(file_or_color, int):
+            # Make a background color fill
+            color_bitmap = displayio.Bitmap(320, 240, 1)
+            color_palette = displayio.Palette(1)
+            color_palette[0] = file_or_color
+            self._bg_sprite = displayio.TileGrid(color_bitmap, pixel_shader=color_palette, position=(0, 0))
+        else:
+            raise RuntimeError("Unknown type of background")
         self._bg_group.append(self._bg_sprite)
         board.DISPLAY.refresh_soon()
         gc.collect()
