@@ -220,6 +220,11 @@ class PyPortal:
         except OSError as error:
             print("No SD card found:", error)
 
+        try:
+            self.play_file("pyportal_startup.wav")
+        except OSError:
+            pass # they deleted the file, no biggie!
+
         if self._debug:
             print("Init display")
         self.splash = displayio.Group(max_size=5)
@@ -303,6 +308,7 @@ class PyPortal:
         # pylint: enable=no-member
 
         self.set_backlight(1.0)  # turn on backlight
+
         gc.collect()
 
     def set_background(self, filename):
