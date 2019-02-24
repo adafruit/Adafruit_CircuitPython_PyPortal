@@ -59,16 +59,18 @@ import adafruit_esp32spi.adafruit_esp32spi_requests as requests
 from adafruit_display_text.text_area import TextArea
 from adafruit_bitmap_font import bitmap_font
 
+import storage
+import adafruit_sdcard
 import displayio
 import audioio
 import rtc
 import supervisor
 
 try:
-    from settings import settings
+    from secrets import secrets
 except ImportError:
-    print("""WiFi settings are kept in settings.py, please add them there!
-the settings dictionary must contain 'ssid' and 'password' at a minimum""")
+    print("""WiFi settings are kept in secrets.py, please add them there!
+the secrets dictionary must contain 'ssid' and 'password' at a minimum""")
     raise
 
 __version__ = "0.0.0-auto.0"
@@ -206,6 +208,17 @@ class PyPortal:
                 raise RuntimeError("Was not able to find ESP32")
 
             requests.set_interface(self._esp)
+
+        if self._debug:
+            print("Init SD Card")
+        sd_cs = DigitalInOut(board.SD_CS)
+        self._sdcard = None
+        try:
+            self._sdcard = adafruit_sdcard.SDCard(spi, sd_cs)
+            vfs = storage.VfsFat(self._sdcard)
+            storage.mount(vfs, "/sd")
+        except OSError as error:
+            print("No SD card found:", error)
 
         if self._debug:
             print("Init display")
@@ -488,11 +501,12 @@ class PyPortal:
         response = None
         gc.collect()
 
-    def wget(self, url, filename):
+    def wget(self, url, filename, *, chunk_size=12000):
         """Download a url and save to filename location, like the command wget.
 
         :param url: The URL from which to obtain the data.
         :param filename: The name of the file to save the data to.
+        :param chunk_size: how much data to read/write at a time.
 
         """
         print("Fetching stream from", url)
@@ -506,18 +520,19 @@ class PyPortal:
         remaining = content_length
         print("Saving data to ", filename)
         stamp = time.monotonic()
-        with open(filename, "wb") as file:
-            for i in r.iter_content(min(remaining, 12000)):  # huge chunks!
-                self.neo_status((0, 100, 100))
-                remaining -= len(i)
-                file.write(i)
-                if self._debug:
-                    print("Read %d bytes, %d remaining" % (content_length-remaining, remaining))
-                else:
-                    print(".", end='')
-                if not remaining:
-                    break
-                self.neo_status((100, 100, 0))
+        file = open(filename, "wb")
+        for i in r.iter_content(min(remaining, chunk_size)):  # huge chunks!
+            self.neo_status((0, 100, 100))
+            remaining -= len(i)
+            file.write(i)
+            if self._debug:
+                print("Read %d bytes, %d remaining" % (content_length-remaining, remaining))
+            else:
+                print(".", end='')
+            if not remaining:
+                break
+            self.neo_status((100, 100, 0))
+        file.close()
 
         r.close()
         stamp = time.monotonic() - stamp
@@ -529,9 +544,9 @@ class PyPortal:
         while not self._esp.is_connected:
             if self._debug:
                 print("Connecting to AP")
-            # settings dictionary must contain 'ssid' and 'password' at a minimum
+            # secrets dictionary must contain 'ssid' and 'password' at a minimum
             self.neo_status((100, 0, 0)) # red = not connected
-            self._esp.connect(settings)
+            self._esp.connect(secrets)
 
     def fetch(self):
         """Fetch data from the url we initialized with, perfom any parsing,
@@ -575,7 +590,7 @@ class PyPortal:
                 supervisor.reload()
 
         if self._regexp_path:
-            import ure
+            import re
 
         # extract desired text/values from json
         if self._json_path:
@@ -583,7 +598,7 @@ class PyPortal:
                 values.append(PyPortal._json_traverse(json_out, path))
         elif self._regexp_path:
             for regexp in self._regexp_path:
-                values.append(ure.search(regexp, r.text).group(1))
+                values.append(re.search(regexp, r.text).group(1))
         else:
             values = r.text
 
@@ -606,8 +621,17 @@ class PyPortal:
                 print("convert URL:", image_url)
                 # convert image to bitmap and cache
                 #print("**not actually wgetting**")
-                self.wget(image_url, "/cache.bmp")
-                self.set_background("/cache.bmp")
+                filename = "/cache.bmp"
+                chunk_size = 12000      # default chunk size is 12K (for QSPI)
+                if self._sdcard:
+                    filename = "/sd" + filename
+                    chunk_size = 512  # current bug in big SD writes -> stick to 1 block
+                try:
+                    self.wget(image_url, filename, chunk_size=chunk_size)
+                except OSError as error:
+                    print(error)
+                    raise OSError("""\n\nNo writable filesystem found for saving datastream. Insert an SD card or set internal filesystem to be unsafe by setting 'disable_concurrent_write_protection' in the mount options in boot.py""") # pylint: disable=line-too-long
+                self.set_background(filename)
             except ValueError as error:
                 print("Error displaying cached image. " + error.args[0])
                 self.set_background(self._default_bg)
