@@ -107,7 +107,8 @@ class PyPortal:
     :param regexp_path: The list of regexp strings to get data out (use a single regexp group). Can
                         be list of regexps for multiple data points. Defaults to ``None`` to not
                         use regexp.
-    :param default_bg: The path to your default background image file or a hex color. Defaults to 0x000000.
+    :param default_bg: The path to your default background image file or a hex color.
+                       Defaults to 0x000000.
     :param status_neopixel: The pin for the status NeoPixel. Use ``board.NEOPIXEL`` for the on-board
                             NeoPixel. Defaults to ``None``, no status LED
     :param str text_font: The path to your font file for your data text display.
@@ -319,7 +320,7 @@ class PyPortal:
 
         """
         print("Set background to ", file_or_color)
-        while len(self._bg_group):
+        while len(self._bg_group) != 0:
             self._bg_group.pop()
 
         if not file_or_color:
@@ -330,14 +331,16 @@ class PyPortal:
             self._bg_file = open(file_or_color, "rb")
             background = displayio.OnDiskBitmap(self._bg_file)
             self._bg_sprite = displayio.TileGrid(background,
-                                                pixel_shader=displayio.ColorConverter(),
-                                                position=(0, 0))
+                                                 pixel_shader=displayio.ColorConverter(),
+                                                 position=(0, 0))
         elif isinstance(file_or_color, int):
             # Make a background color fill
             color_bitmap = displayio.Bitmap(320, 240, 1)
             color_palette = displayio.Palette(1)
             color_palette[0] = file_or_color
-            self._bg_sprite = displayio.TileGrid(color_bitmap, pixel_shader=color_palette, position=(0, 0))
+            self._bg_sprite = displayio.TileGrid(color_bitmap,
+                                                 pixel_shader=color_palette,
+                                                 position=(0, 0))
         else:
             raise RuntimeError("Unknown type of background")
         self._bg_group.append(self._bg_sprite)
