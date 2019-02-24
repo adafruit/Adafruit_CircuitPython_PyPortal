@@ -208,6 +208,7 @@ class PyPortal:
                 raise RuntimeError("Was not able to find ESP32")
 
             requests.set_interface(self._esp)
+            self._connect_esp()
 
         if self._debug:
             print("Init SD Card")
@@ -548,12 +549,22 @@ class PyPortal:
     def _connect_esp(self):
         self.neo_status((0, 0, 100))
         while not self._esp.is_connected:
-            if self._debug:
-                print("Connecting to AP")
             # secrets dictionary must contain 'ssid' and 'password' at a minimum
+            print("Connecting to AP", secrets['ssid'])
+            if secrets['ssid'] == 'CHANGE ME' or secrets['ssid'] == 'CHANGE ME':
+                print("*"*45)
+                print("Please update the 'secrets.py' file on your")
+                print("CIRCUITPY drive to include your local access")
+                print("point SSID name in 'ssid' and SSID password")
+                print("in 'password'. Then save to reload!")
+                print("*"*45)
             self.neo_status((100, 0, 0)) # red = not connected
-            self._esp.connect(secrets)
-
+            try:
+                self._esp.connect(secrets)
+            except RuntimeError as error:
+                print("Cound not connect to internet", error)
+                print("Retrying in 3 seconds...")
+                time.sleep(3)
     def fetch(self):
         """Fetch data from the url we initialized with, perfom any parsing,
         and display text or graphics. This function does pretty much everything"""
