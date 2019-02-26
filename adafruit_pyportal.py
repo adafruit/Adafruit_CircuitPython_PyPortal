@@ -77,7 +77,7 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PyPortal.git"
 
 # pylint: disable=line-too-long
-IMAGE_CONVERTER_SERVICE = "http://res.cloudinary.com/schmarty/image/fetch/w_320,h_240,c_fill,f_bmp/"
+IMAGE_CONVERTER_SERVICE = "https://res.cloudinary.com/schmarty/image/fetch/w_320,h_240,c_fill,f_bmp/"
 #IMAGE_CONVERTER_SERVICE = "http://ec2-107-23-37-170.compute-1.amazonaws.com/rx/ofmt_bmp,rz_320x240/"
 TIME_SERVICE_IPADDR = "http://worldtimeapi.org/api/ip"
 TIME_SERVICE_LOCATION = "http://worldtimeapi.org/api/timezone/"
@@ -107,7 +107,8 @@ class PyPortal:
     :param regexp_path: The list of regexp strings to get data out (use a single regexp group). Can
                         be list of regexps for multiple data points. Defaults to ``None`` to not
                         use regexp.
-    :param default_bg: The path to your default background image file. Defaults to ``None``.
+    :param default_bg: The path to your default background image file or a hex color.
+                       Defaults to 0x000000.
     :param status_neopixel: The pin for the status NeoPixel. Use ``board.NEOPIXEL`` for the on-board
                             NeoPixel. Defaults to ``None``, no status LED
     :param str text_font: The path to your font file for your data text display.
@@ -137,7 +138,7 @@ class PyPortal:
     """
     # pylint: disable=too-many-instance-attributes, too-many-locals, too-many-branches, too-many-statements
     def __init__(self, *, url=None, json_path=None, regexp_path=None,
-                 default_bg=None, status_neopixel=None,
+                 default_bg=0x000000, status_neopixel=None,
                  text_font=None, text_position=None, text_color=0x808080,
                  text_wrap=False, text_maxlen=0,
                  image_json_path=None, image_resize=None, image_position=None,
@@ -208,6 +209,7 @@ class PyPortal:
                 raise RuntimeError("Was not able to find ESP32")
 
             requests.set_interface(self._esp)
+            self._connect_esp()
 
         if self._debug:
             print("Init SD Card")
@@ -219,6 +221,11 @@ class PyPortal:
             storage.mount(vfs, "/sd")
         except OSError as error:
             print("No SD card found:", error)
+
+        try:
+            self.play_file("pyportal_startup.wav")
+        except OSError:
+            pass # they deleted the file, no biggie!
 
         if self._debug:
             print("Init display")
@@ -303,34 +310,39 @@ class PyPortal:
         # pylint: enable=no-member
 
         self.set_backlight(1.0)  # turn on backlight
+
         gc.collect()
 
-    def set_background(self, filename):
+    def set_background(self, file_or_color):
         """The background image to a bitmap file.
 
-        :param filename: The name of the chosen background image file.
+        :param file_or_color: The filename of the chosen background image, or a hex color.
 
         """
-        print("Set background to ", filename)
-        try:
+        print("Set background to ", file_or_color)
+        while self._bg_group:
             self._bg_group.pop()
-        except IndexError:
-            pass  # s'ok, we'll fix to test once we can
 
-        if not filename:
+        if not file_or_color:
             return  # we're done, no background desired
         if self._bg_file:
             self._bg_file.close()
-        self._bg_file = open(filename, "rb")
-        background = displayio.OnDiskBitmap(self._bg_file)
-        try:
+        if isinstance(file_or_color, str): # its a filenme:
+            self._bg_file = open(file_or_color, "rb")
+            background = displayio.OnDiskBitmap(self._bg_file)
             self._bg_sprite = displayio.TileGrid(background,
                                                  pixel_shader=displayio.ColorConverter(),
                                                  position=(0, 0))
-        except AttributeError:
-            self._bg_sprite = displayio.Sprite(background, pixel_shader=displayio.ColorConverter(),
-                                               position=(0, 0))
-
+        elif isinstance(file_or_color, int):
+            # Make a background color fill
+            color_bitmap = displayio.Bitmap(320, 240, 1)
+            color_palette = displayio.Palette(1)
+            color_palette[0] = file_or_color
+            self._bg_sprite = displayio.TileGrid(color_bitmap,
+                                                 pixel_shader=color_palette,
+                                                 position=(0, 0))
+        else:
+            raise RuntimeError("Unknown type of background")
         self._bg_group.append(self._bg_sprite)
         board.DISPLAY.refresh_soon()
         gc.collect()
@@ -449,8 +461,8 @@ class PyPortal:
 
         """
         #self._speaker_enable.value = True
-        with audioio.AudioOut(board.AUDIO_OUT) as audio:
-            with open(file_name, "rb") as file:
+        with open(file_name, "rb") as file:
+            with audioio.AudioOut(board.AUDIO_OUT) as audio:
                 with audioio.WaveFile(file) as wavefile:
                     audio.play(wavefile)
                     while audio.playing:
@@ -475,17 +487,24 @@ class PyPortal:
         # pylint: enable=line-too-long
         self._connect_esp()
         api_url = None
-        if not location:
-            api_url = TIME_SERVICE_IPADDR
-        else:
+        if secrets['timezone']:
+            location = secrets['timezone']
+        if location:
+            print("Getting time for timezone", location)
             api_url = TIME_SERVICE_LOCATION + location
-        response = requests.get(api_url)
-        time_json = response.json()
-        current_time = time_json['datetime']
-        year_day = time_json['day_of_year']
-        week_day = time_json['day_of_week']
-        is_dst = time_json['dst']
+        else: # we'll try to figure it out from the IP address
+            print("Getting time from IP address")
+            api_url = TIME_SERVICE_IPADDR
 
+        try:
+            response = requests.get(api_url)
+            time_json = response.json()
+            current_time = time_json['datetime']
+            year_day = time_json['day_of_year']
+            week_day = time_json['day_of_week']
+            is_dst = time_json['dst']
+        except KeyError:
+            raise KeyError("Was unable to lookup the time, try setting secrets['timezone'] according to http://worldtimeapi.org/timezones")  # pylint: disable=line-too-long
         the_date, the_time = current_time.split('T')
         year, month, mday = [int(x) for x in the_date.split('-')]
         the_time = the_time.split('.')[0]
@@ -542,12 +561,22 @@ class PyPortal:
     def _connect_esp(self):
         self.neo_status((0, 0, 100))
         while not self._esp.is_connected:
-            if self._debug:
-                print("Connecting to AP")
             # secrets dictionary must contain 'ssid' and 'password' at a minimum
+            print("Connecting to AP", secrets['ssid'])
+            if secrets['ssid'] == 'CHANGE ME' or secrets['ssid'] == 'CHANGE ME':
+                print("*"*45)
+                print("Please update the 'secrets.py' file on your")
+                print("CIRCUITPY drive to include your local access")
+                print("point SSID name in 'ssid' and SSID password")
+                print("in 'password'. Then save to reload!")
+                print("*"*45)
             self.neo_status((100, 0, 0)) # red = not connected
-            self._esp.connect(secrets)
-
+            try:
+                self._esp.connect(secrets)
+            except RuntimeError as error:
+                print("Cound not connect to internet", error)
+                print("Retrying in 3 seconds...")
+                time.sleep(3)
     def fetch(self):
         """Fetch data from the url we initialized with, perfom any parsing,
         and display text or graphics. This function does pretty much everything"""
@@ -719,7 +748,8 @@ class PyPortal:
 
             for b in range(BLOCK_SIZE):
                 # load this line of data in, as many time as block size
-                qr_bitmap._load_row(Y_OFFSET + y*BLOCK_SIZE+b, line)  # pylint: disable=protected-access
+                for i, byte in enumerate(line):
+                    qr_bitmap[Y_OFFSET + y*BLOCK_SIZE+b + i] = byte
         # pylint: enable=invalid-name
 
         # display the bitmap using our palette
