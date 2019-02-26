@@ -481,8 +481,10 @@ class PyPortal:
         # pylint: enable=line-too-long
         self._connect_esp()
         api_url = None
-        if secrets['timezone']:
+        try:
             location = secrets['timezone']
+        except:
+            pass
         if location:
             print("Getting time for timezone", location)
             api_url = TIME_SERVICE_LOCATION + location
