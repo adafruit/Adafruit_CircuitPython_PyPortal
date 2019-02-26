@@ -181,17 +181,11 @@ class PyPortal:
         # Make ESP32 connection
         if self._debug:
             print("Init ESP32")
-        # pylint: disable=no-member
-        esp32_cs = DigitalInOut(microcontroller.pin.PB14)
-        esp32_ready = DigitalInOut(microcontroller.pin.PB16)
-        esp32_gpio0 = DigitalInOut(microcontroller.pin.PB15)
-        esp32_reset = DigitalInOut(microcontroller.pin.PB17)
-        #esp32_ready = DigitalInOut(board.ESP_BUSY)
-        #esp32_gpio0 = DigitalInOut(board.ESP_GPIO0)
-        #esp32_reset = DigitalInOut(board.ESP_RESET)
-        #esp32_cs = DigitalInOut(board.ESP_CS)
+        esp32_ready = DigitalInOut(board.ESP_BUSY)
+        esp32_gpio0 = DigitalInOut(board.ESP_GPIO0)
+        esp32_reset = DigitalInOut(board.ESP_RESET)
+        esp32_cs = DigitalInOut(board.ESP_CS)
         spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
-        # pylint: enable=no-member
 
         if not self._uselocal:
             self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready,
