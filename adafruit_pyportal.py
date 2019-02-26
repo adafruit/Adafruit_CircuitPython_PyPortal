@@ -77,7 +77,7 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PyPortal.git"
 
 # pylint: disable=line-too-long
-IMAGE_CONVERTER_SERVICE = "http://res.cloudinary.com/schmarty/image/fetch/w_320,h_240,c_fill,f_bmp/"
+IMAGE_CONVERTER_SERVICE = "https://res.cloudinary.com/schmarty/image/fetch/w_320,h_240,c_fill,f_bmp/"
 #IMAGE_CONVERTER_SERVICE = "http://ec2-107-23-37-170.compute-1.amazonaws.com/rx/ofmt_bmp,rz_320x240/"
 TIME_SERVICE_IPADDR = "http://worldtimeapi.org/api/ip"
 TIME_SERVICE_LOCATION = "http://worldtimeapi.org/api/timezone/"
@@ -320,7 +320,7 @@ class PyPortal:
 
         """
         print("Set background to ", file_or_color)
-        while len(self._bg_group) != 0:
+        while self._bg_group:
             self._bg_group.pop()
 
         if not file_or_color:
@@ -461,8 +461,8 @@ class PyPortal:
 
         """
         #self._speaker_enable.value = True
-        with audioio.AudioOut(board.AUDIO_OUT) as audio:
-            with open(file_name, "rb") as file:
+        with open(file_name, "rb") as file:
+            with audioio.AudioOut(board.AUDIO_OUT) as audio:
                 with audioio.WaveFile(file) as wavefile:
                     audio.play(wavefile)
                     while audio.playing:
@@ -487,17 +487,24 @@ class PyPortal:
         # pylint: enable=line-too-long
         self._connect_esp()
         api_url = None
-        if not location:
-            api_url = TIME_SERVICE_IPADDR
-        else:
+        if secrets['timezone']:
+            location = secrets['timezone']
+        if location:
+            print("Getting time for timezone", location)
             api_url = TIME_SERVICE_LOCATION + location
-        response = requests.get(api_url)
-        time_json = response.json()
-        current_time = time_json['datetime']
-        year_day = time_json['day_of_year']
-        week_day = time_json['day_of_week']
-        is_dst = time_json['dst']
+        else: # we'll try to figure it out from the IP address
+            print("Getting time from IP address")
+            api_url = TIME_SERVICE_IPADDR
 
+        try:
+            response = requests.get(api_url)
+            time_json = response.json()
+            current_time = time_json['datetime']
+            year_day = time_json['day_of_year']
+            week_day = time_json['day_of_week']
+            is_dst = time_json['dst']
+        except KeyError:
+            raise KeyError("Was unable to lookup the time, try setting secrets['timezone'] according to http://worldtimeapi.org/timezones")  # pylint: disable=line-too-long
         the_date, the_time = current_time.split('T')
         year, month, mday = [int(x) for x in the_date.split('-')]
         the_time = the_time.split('.')[0]
@@ -741,7 +748,8 @@ class PyPortal:
 
             for b in range(BLOCK_SIZE):
                 # load this line of data in, as many time as block size
-                qr_bitmap._load_row(Y_OFFSET + y*BLOCK_SIZE+b, line)  # pylint: disable=protected-access
+                for i, byte in enumerate(line):
+                    qr_bitmap[Y_OFFSET + y*BLOCK_SIZE+b + i] = byte
         # pylint: enable=invalid-name
 
         # display the bitmap using our palette
