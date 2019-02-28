@@ -252,6 +252,8 @@ class PyPortal:
                     text_wrap = [0] * num
                 if not text_maxlen:
                     text_maxlen = [0] * num
+                if not text_transform:
+                    text_transform = [None] * num
             else:
                 num = 1
                 text_position = (text_position,)
@@ -687,8 +689,8 @@ class PyPortal:
             for i in range(len(self._text)):
                 string = None
                 if self._text_transform[i]:
-                    f = self._text_transform[i]
-                    string = f(values[i])
+                    func = self._text_transform[i]
+                    string = func(values[i])
                 else:
                     try:
                         string = "{:,d}".format(int(values[i]))
