@@ -77,8 +77,9 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PyPortal.git"
 
 # pylint: disable=line-too-long
-IMAGE_CONVERTER_SERVICE = "https://res.cloudinary.com/schmarty/image/fetch/w_320,h_240,c_fill,f_bmp/"
-#IMAGE_CONVERTER_SERVICE = "http://ec2-107-23-37-170.compute-1.amazonaws.com/rx/ofmt_bmp,rz_320x240/"
+# you'll need to pass in an io username, width, height, format (bit depth), io key, and then url!
+IMAGE_CONVERTER_SERVICE = "https://io.adafruit.com/api/v2/%s/integrations/image-formatter?x-aio-key=%s&width=%d&height=%d&output=BMP%d&url=%s"
+
 TIME_SERVICE_IPADDR = "http://worldtimeapi.org/api/ip"
 TIME_SERVICE_LOCATION = "http://worldtimeapi.org/api/timezone/"
 LOCALFILE = "local.txt"
@@ -119,6 +120,7 @@ class PyPortal:
     :param text_wrap: Whether or not to wrap text (for long text data chunks). Defaults to
                       ``False``, no wrapping.
     :param text_maxlen: The max length of the text for text wrapping. Defaults to 0.
+    :param text_transform: A function that will be called on the text before display
     :param image_json_path: The JSON traversal path for a background image to display. Defaults to
                             ``None``.
     :param image_resize: What size to resize the image we got from the json_path, make this a tuple
@@ -140,7 +142,7 @@ class PyPortal:
     def __init__(self, *, url=None, json_path=None, regexp_path=None,
                  default_bg=0x000000, status_neopixel=None,
                  text_font=None, text_position=None, text_color=0x808080,
-                 text_wrap=False, text_maxlen=0,
+                 text_wrap=False, text_maxlen=0, text_transform=None,
                  image_json_path=None, image_resize=None, image_position=None,
                  caption_text=None, caption_font=None, caption_position=None,
                  caption_color=0x808080,
@@ -256,11 +258,13 @@ class PyPortal:
                 text_color = (text_color,)
                 text_wrap = (text_wrap,)
                 text_maxlen = (text_maxlen,)
+                text_transform = (text_transform,)
             self._text = [None] * num
             self._text_color = [None] * num
             self._text_position = [None] * num
             self._text_wrap = [None] * num
             self._text_maxlen = [None] * num
+            self._text_transform = [None] * num
             self._text_font = bitmap_font.load_font(text_font)
             if self._debug:
                 print("Loading font glyphs")
@@ -276,6 +280,7 @@ class PyPortal:
                 self._text_position[i] = text_position[i]
                 self._text_wrap[i] = text_wrap[i]
                 self._text_maxlen[i] = text_maxlen[i]
+                self._text_transform[i] = text_transform[i]
         else:
             self._text_font = None
             self._text = None
@@ -617,7 +622,11 @@ class PyPortal:
         # extract desired text/values from json
         if self._json_path:
             for path in self._json_path:
-                values.append(PyPortal._json_traverse(json_out, path))
+                try:
+                    values.append(PyPortal._json_traverse(json_out, path))
+                except KeyError:
+                    print(json_out)
+                    raise
         elif self._regexp_path:
             for regexp in self._regexp_path:
                 values.append(re.search(regexp, r.text).group(1))
@@ -638,8 +647,16 @@ class PyPortal:
 
         if image_url:
             try:
+                aio_username = secrets['aio_username']
+                aio_key = secrets['aio_key']
+            except KeyError:
+                raise KeyError("\n\nOur image converter service require a login/password to rate-limit. Please register for a freeadafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
+            try:
                 print("original URL:", image_url)
-                image_url = IMAGE_CONVERTER_SERVICE+image_url
+                image_url = IMAGE_CONVERTER_SERVICE % (aio_username, aio_key,
+                                                       self._image_resize[0],
+                                                       self._image_resize[1],
+                                                       16, image_url)
                 print("convert URL:", image_url)
                 # convert image to bitmap and cache
                 #print("**not actually wgetting**")
@@ -669,10 +686,14 @@ class PyPortal:
         if self._text:
             for i in range(len(self._text)):
                 string = None
-                try:
-                    string = "{:,d}".format(int(values[i]))
-                except (TypeError, ValueError):
-                    string = values[i] # ok its a string
+                if self._text_transform[i]:
+                    f = self._text_transform[i]
+                    string = f(values[i])
+                else:
+                    try:
+                        string = "{:,d}".format(int(values[i]))
+                    except (TypeError, ValueError):
+                        string = values[i] # ok its a string
                 if self._debug:
                     print("Drawing text", string)
                 if self._text_wrap[i]:
