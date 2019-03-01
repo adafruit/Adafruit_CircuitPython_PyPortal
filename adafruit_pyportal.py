@@ -218,6 +218,10 @@ class PyPortal:
         except OSError as error:
             print("No SD card found:", error)
 
+        self._speaker_enable = DigitalInOut(board.SPEAKER_ENABLE)
+        self._speaker_enable.switch_to_output(False)
+        self.audio = audioio.AudioOut(board.AUDIO_OUT)
+
         try:
             self.play_file("pyportal_startup.wav")
         except OSError:
@@ -454,21 +458,23 @@ class PyPortal:
         if self.neopix:
             self.neopix.fill(value)
 
-    @staticmethod
-    def play_file(file_name):
+    def play_file(self, file_name, wait_to_finish=True):
         """Play a wav file.
 
         :param str file_name: The name of the wav file to play on the speaker.
 
         """
-        #self._speaker_enable.value = True
-        with open(file_name, "rb") as file:
-            with audioio.AudioOut(board.AUDIO_OUT) as audio:
-                with audioio.WaveFile(file) as wavefile:
-                    audio.play(wavefile)
-                    while audio.playing:
-                        pass
-        #self._speaker_enable.value = False
+        board.DISPLAY.wait_for_frame()
+        wavfile = open(file_name, "rb")
+        wavedata = audioio.WaveFile(wavfile)
+        self._speaker_enable.value = True
+        self.audio.play(wavedata)
+        if not wait_to_finish:
+            return
+        while self.audio.playing:
+            pass
+        wavfile.close()
+        self._speaker_enable.value = False
 
     @staticmethod
     def _json_traverse(json, path):
