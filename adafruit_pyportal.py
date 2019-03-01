@@ -318,7 +318,7 @@ class PyPortal:
 
         gc.collect()
 
-    def set_background(self, file_or_color):
+    def set_background(self, file_or_color, position=None):
         """The background image to a bitmap file.
 
         :param file_or_color: The filename of the chosen background image, or a hex color.
@@ -327,6 +327,9 @@ class PyPortal:
         print("Set background to ", file_or_color)
         while self._bg_group:
             self._bg_group.pop()
+
+        if not position:
+            position = (0, 0)  # default in top corner
 
         if not file_or_color:
             return  # we're done, no background desired
@@ -337,7 +340,7 @@ class PyPortal:
             background = displayio.OnDiskBitmap(self._bg_file)
             self._bg_sprite = displayio.TileGrid(background,
                                                  pixel_shader=displayio.ColorConverter(),
-                                                 position=(0, 0))
+                                                 position=position)
         elif isinstance(file_or_color, int):
             # Make a background color fill
             color_bitmap = displayio.Bitmap(320, 240, 1)
@@ -688,7 +691,7 @@ class PyPortal:
                 except OSError as error:
                     print(error)
                     raise OSError("""\n\nNo writable filesystem found for saving datastream. Insert an SD card or set internal filesystem to be unsafe by setting 'disable_concurrent_write_protection' in the mount options in boot.py""") # pylint: disable=line-too-long
-                self.set_background(filename)
+                self.set_background(filename, self._image_position)
             except ValueError as error:
                 print("Error displaying cached image. " + error.args[0])
                 self.set_background(self._default_bg)
