@@ -584,17 +584,18 @@ class PyPortal:
                 print("Retrying in 3 seconds...")
                 time.sleep(3)
 
-    def image_converter_url(self, image_url, width, height, color_depth=16):
+    @staticmethod
+    def image_converter_url(image_url, width, height, color_depth=16):
         """Generate a converted image url from the url passed in,
            with the given width and height. aio_username and aio_key must be
            set in secrets."""
         try:
-            self._aio_username = secrets['aio_username']
-            self._aio_key = secrets['aio_key']
+            aio_username = secrets['aio_username']
+            aio_key = secrets['aio_key']
         except KeyError:
             raise KeyError("\n\nOur image converter service require a login/password to rate-limit. Please register for a freeadafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
 
-        return IMAGE_CONVERTER_SERVICE % (self._aio_username, self._aio_key,
+        return IMAGE_CONVERTER_SERVICE % (aio_username, aio_key,
                                           width, height,
                                           color_depth, image_url)
 
