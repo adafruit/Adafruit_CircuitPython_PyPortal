@@ -583,6 +583,22 @@ class PyPortal:
                 print("Cound not connect to internet", error)
                 print("Retrying in 3 seconds...")
                 time.sleep(3)
+
+    @staticmethod
+    def image_converter_url(image_url, width, height, color_depth=16):
+        """Generate a converted image url from the url passed in,
+           with the given width and height. aio_username and aio_key must be
+           set in secrets."""
+        try:
+            aio_username = secrets['aio_username']
+            aio_key = secrets['aio_key']
+        except KeyError:
+            raise KeyError("\n\nOur image converter service require a login/password to rate-limit. Please register for a freeadafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
+
+        return IMAGE_CONVERTER_SERVICE % (aio_username, aio_key,
+                                          width, height,
+                                          color_depth, image_url)
+
     def fetch(self):
         """Fetch data from the url we initialized with, perfom any parsing,
         and display text or graphics. This function does pretty much everything"""
@@ -655,16 +671,10 @@ class PyPortal:
 
         if image_url:
             try:
-                aio_username = secrets['aio_username']
-                aio_key = secrets['aio_key']
-            except KeyError:
-                raise KeyError("\n\nOur image converter service require a login/password to rate-limit. Please register for a freeadafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
-            try:
                 print("original URL:", image_url)
-                image_url = IMAGE_CONVERTER_SERVICE % (aio_username, aio_key,
-                                                       self._image_resize[0],
-                                                       self._image_resize[1],
-                                                       16, image_url)
+                image_url = self.image_converter_url(image_url,
+                                                     self._image_resize[0],
+                                                     self._image_resize[1])
                 print("convert URL:", image_url)
                 # convert image to bitmap and cache
                 #print("**not actually wgetting**")
