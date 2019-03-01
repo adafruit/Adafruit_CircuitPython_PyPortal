@@ -77,8 +77,9 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PyPortal.git"
 
 # pylint: disable=line-too-long
-IMAGE_CONVERTER_SERVICE = "https://res.cloudinary.com/schmarty/image/fetch/w_320,h_240,c_fill,f_bmp/"
-#IMAGE_CONVERTER_SERVICE = "http://ec2-107-23-37-170.compute-1.amazonaws.com/rx/ofmt_bmp,rz_320x240/"
+# you'll need to pass in an io username, width, height, format (bit depth), io key, and then url!
+IMAGE_CONVERTER_SERVICE = "https://io.adafruit.com/api/v2/%s/integrations/image-formatter?x-aio-key=%s&width=%d&height=%d&output=BMP%d&url=%s"
+
 TIME_SERVICE_IPADDR = "http://worldtimeapi.org/api/ip"
 TIME_SERVICE_LOCATION = "http://worldtimeapi.org/api/timezone/"
 LOCALFILE = "local.txt"
@@ -119,6 +120,7 @@ class PyPortal:
     :param text_wrap: Whether or not to wrap text (for long text data chunks). Defaults to
                       ``False``, no wrapping.
     :param text_maxlen: The max length of the text for text wrapping. Defaults to 0.
+    :param text_transform: A function that will be called on the text before display
     :param image_json_path: The JSON traversal path for a background image to display. Defaults to
                             ``None``.
     :param image_resize: What size to resize the image we got from the json_path, make this a tuple
@@ -140,7 +142,7 @@ class PyPortal:
     def __init__(self, *, url=None, json_path=None, regexp_path=None,
                  default_bg=0x000000, status_neopixel=None,
                  text_font=None, text_position=None, text_color=0x808080,
-                 text_wrap=False, text_maxlen=0,
+                 text_wrap=False, text_maxlen=0, text_transform=None,
                  image_json_path=None, image_resize=None, image_position=None,
                  caption_text=None, caption_font=None, caption_position=None,
                  caption_color=0x808080,
@@ -181,17 +183,11 @@ class PyPortal:
         # Make ESP32 connection
         if self._debug:
             print("Init ESP32")
-        # pylint: disable=no-member
-        esp32_cs = DigitalInOut(microcontroller.pin.PB14)
-        esp32_ready = DigitalInOut(microcontroller.pin.PB16)
-        esp32_gpio0 = DigitalInOut(microcontroller.pin.PB15)
-        esp32_reset = DigitalInOut(microcontroller.pin.PB17)
-        #esp32_ready = DigitalInOut(board.ESP_BUSY)
-        #esp32_gpio0 = DigitalInOut(board.ESP_GPIO0)
-        #esp32_reset = DigitalInOut(board.ESP_RESET)
-        #esp32_cs = DigitalInOut(board.ESP_CS)
+        esp32_ready = DigitalInOut(board.ESP_BUSY)
+        esp32_gpio0 = DigitalInOut(board.ESP_GPIO0)
+        esp32_reset = DigitalInOut(board.ESP_RESET)
+        esp32_cs = DigitalInOut(board.ESP_CS)
         spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
-        # pylint: enable=no-member
 
         if not self._uselocal:
             self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready,
@@ -221,6 +217,10 @@ class PyPortal:
             storage.mount(vfs, "/sd")
         except OSError as error:
             print("No SD card found:", error)
+
+        self._speaker_enable = DigitalInOut(board.SPEAKER_ENABLE)
+        self._speaker_enable.switch_to_output(False)
+        self.audio = audioio.AudioOut(board.AUDIO_OUT)
 
         try:
             self.play_file("pyportal_startup.wav")
@@ -256,17 +256,21 @@ class PyPortal:
                     text_wrap = [0] * num
                 if not text_maxlen:
                     text_maxlen = [0] * num
+                if not text_transform:
+                    text_transform = [None] * num
             else:
                 num = 1
                 text_position = (text_position,)
                 text_color = (text_color,)
                 text_wrap = (text_wrap,)
                 text_maxlen = (text_maxlen,)
+                text_transform = (text_transform,)
             self._text = [None] * num
             self._text_color = [None] * num
             self._text_position = [None] * num
             self._text_wrap = [None] * num
             self._text_maxlen = [None] * num
+            self._text_transform = [None] * num
             self._text_font = bitmap_font.load_font(text_font)
             if self._debug:
                 print("Loading font glyphs")
@@ -282,6 +286,7 @@ class PyPortal:
                 self._text_position[i] = text_position[i]
                 self._text_wrap[i] = text_wrap[i]
                 self._text_maxlen[i] = text_maxlen[i]
+                self._text_transform[i] = text_transform[i]
         else:
             self._text_font = None
             self._text = None
@@ -453,21 +458,23 @@ class PyPortal:
         if self.neopix:
             self.neopix.fill(value)
 
-    @staticmethod
-    def play_file(file_name):
+    def play_file(self, file_name, wait_to_finish=True):
         """Play a wav file.
 
         :param str file_name: The name of the wav file to play on the speaker.
 
         """
-        #self._speaker_enable.value = True
-        with open(file_name, "rb") as file:
-            with audioio.AudioOut(board.AUDIO_OUT) as audio:
-                with audioio.WaveFile(file) as wavefile:
-                    audio.play(wavefile)
-                    while audio.playing:
-                        pass
-        #self._speaker_enable.value = False
+        board.DISPLAY.wait_for_frame()
+        wavfile = open(file_name, "rb")
+        wavedata = audioio.WaveFile(wavfile)
+        self._speaker_enable.value = True
+        self.audio.play(wavedata)
+        if not wait_to_finish:
+            return
+        while self.audio.playing:
+            pass
+        wavfile.close()
+        self._speaker_enable.value = False
 
     @staticmethod
     def _json_traverse(json, path):
@@ -487,8 +494,7 @@ class PyPortal:
         # pylint: enable=line-too-long
         self._connect_esp()
         api_url = None
-        if secrets['timezone']:
-            location = secrets['timezone']
+        location = secrets.get('timezone', location)
         if location:
             print("Getting time for timezone", location)
             api_url = TIME_SERVICE_LOCATION + location
@@ -624,7 +630,11 @@ class PyPortal:
         # extract desired text/values from json
         if self._json_path:
             for path in self._json_path:
-                values.append(PyPortal._json_traverse(json_out, path))
+                try:
+                    values.append(PyPortal._json_traverse(json_out, path))
+                except KeyError:
+                    print(json_out)
+                    raise
         elif self._regexp_path:
             for regexp in self._regexp_path:
                 values.append(re.search(regexp, r.text).group(1))
@@ -645,8 +655,16 @@ class PyPortal:
 
         if image_url:
             try:
+                aio_username = secrets['aio_username']
+                aio_key = secrets['aio_key']
+            except KeyError:
+                raise KeyError("\n\nOur image converter service require a login/password to rate-limit. Please register for a freeadafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
+            try:
                 print("original URL:", image_url)
-                image_url = IMAGE_CONVERTER_SERVICE+image_url
+                image_url = IMAGE_CONVERTER_SERVICE % (aio_username, aio_key,
+                                                       self._image_resize[0],
+                                                       self._image_resize[1],
+                                                       16, image_url)
                 print("convert URL:", image_url)
                 # convert image to bitmap and cache
                 #print("**not actually wgetting**")
@@ -676,10 +694,14 @@ class PyPortal:
         if self._text:
             for i in range(len(self._text)):
                 string = None
-                try:
-                    string = "{:,d}".format(int(values[i]))
-                except (TypeError, ValueError):
-                    string = values[i] # ok its a string
+                if self._text_transform[i]:
+                    func = self._text_transform[i]
+                    string = func(values[i])
+                else:
+                    try:
+                        string = "{:,d}".format(int(values[i]))
+                    except (TypeError, ValueError):
+                        string = values[i] # ok its a string
                 if self._debug:
                     print("Drawing text", string)
                 if self._text_wrap[i]:
