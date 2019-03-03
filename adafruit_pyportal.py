@@ -135,6 +135,7 @@ class PyPortal:
     :param caption_position: The position of your caption on the display as an (x, y) tuple.
                              Defaults to ``None``.
     :param caption_color: The color of your caption. Must be a hex value, e.g. ``0x808000``.
+    :param splash_max: The maximum size of the splash. Defaults to 5.
     :param debug: Turn on debug print outs. Defaults to False.
 
     """
@@ -146,7 +147,7 @@ class PyPortal:
                  image_json_path=None, image_resize=None, image_position=None,
                  caption_text=None, caption_font=None, caption_position=None,
                  caption_color=0x808080,
-                 success_callback=None, debug=False):
+                 success_callback=None, splash_max=5, debug=False):
 
         self._debug = debug
 
@@ -229,7 +230,7 @@ class PyPortal:
 
         if self._debug:
             print("Init display")
-        self.splash = displayio.Group(max_size=5)
+        self.splash = displayio.Group(max_size=splash_max)
         board.DISPLAY.show(self.splash)
 
         if self._debug:
