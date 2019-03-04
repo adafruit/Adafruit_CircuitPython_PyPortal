@@ -147,7 +147,7 @@ class PyPortal:
                  image_json_path=None, image_resize=None, image_position=None,
                  caption_text=None, caption_font=None, caption_position=None,
                  caption_color=0x808080,
-                 success_callback=None, splash_max=5, debug=False):
+                 success_callback=None, debug=False):
 
         self._debug = debug
 
@@ -230,7 +230,7 @@ class PyPortal:
 
         if self._debug:
             print("Init display")
-        self.splash = displayio.Group(max_size=splash_max)
+        self.splash = displayio.Group(max_size=15)
         board.DISPLAY.show(self.splash)
 
         if self._debug:
