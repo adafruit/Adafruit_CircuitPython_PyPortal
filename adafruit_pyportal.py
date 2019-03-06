@@ -180,6 +180,42 @@ class PyPortal:
         except OSError:
             self._uselocal = False
 
+        if self._debug:
+            print("Init display")
+        self.splash = displayio.Group(max_size=15)
+
+        if self._debug:
+            print("Init background")
+        self._bg_group = displayio.Group(max_size=1)
+        self._bg_file = None
+        self._default_bg = default_bg
+        self.splash.append(self._bg_group)
+
+        # show thank you and bootup file if available
+        for bootscreen in ("/thankyou.bmp", "/pyportal_startup.bmp"):
+            try:
+                os.stat(bootscreen)
+                board.DISPLAY.show(self.splash)
+                for i in range(100, -1, -1):  # dim down
+                    self.set_backlight(i/100)
+                    time.sleep(0.005)
+                self.set_background(bootscreen)
+                board.DISPLAY.wait_for_frame()
+                for i in range(100):  # dim up
+                    self.set_backlight(i/100)
+                    time.sleep(0.005)
+                time.sleep(2)
+            except OSError:
+                pass # they removed it, skip!
+
+        self._speaker_enable = DigitalInOut(board.SPEAKER_ENABLE)
+        self._speaker_enable.switch_to_output(False)
+        self.audio = audioio.AudioOut(board.AUDIO_OUT)
+        try:
+            self.play_file("pyportal_startup.wav")
+        except OSError:
+            pass # they deleted the file, no biggie!
+
         # Make ESP32 connection
         if self._debug:
             print("Init ESP32")
@@ -207,6 +243,10 @@ class PyPortal:
             requests.set_interface(self._esp)
             self._connect_esp()
 
+        # set the default background
+        self.set_background(self._default_bg)
+        board.DISPLAY.show(self.splash)
+
         if self._debug:
             print("Init SD Card")
         sd_cs = DigitalInOut(board.SD_CS)
@@ -217,28 +257,6 @@ class PyPortal:
             storage.mount(vfs, "/sd")
         except OSError as error:
             print("No SD card found:", error)
-
-        self._speaker_enable = DigitalInOut(board.SPEAKER_ENABLE)
-        self._speaker_enable.switch_to_output(False)
-        self.audio = audioio.AudioOut(board.AUDIO_OUT)
-
-        try:
-            self.play_file("pyportal_startup.wav")
-        except OSError:
-            pass # they deleted the file, no biggie!
-
-        if self._debug:
-            print("Init display")
-        self.splash = displayio.Group(max_size=15)
-        board.DISPLAY.show(self.splash)
-
-        if self._debug:
-            print("Init background")
-        self._bg_group = displayio.Group(max_size=1)
-        self._bg_file = None
-        self._default_bg = default_bg
-        self.set_background(self._default_bg)
-        self.splash.append(self._bg_group)
 
         self._qr_group = None
 
@@ -571,12 +589,13 @@ class PyPortal:
             # secrets dictionary must contain 'ssid' and 'password' at a minimum
             print("Connecting to AP", secrets['ssid'])
             if secrets['ssid'] == 'CHANGE ME' or secrets['ssid'] == 'CHANGE ME':
-                print("*"*45)
-                print("Please update the 'secrets.py' file on your")
-                print("CIRCUITPY drive to include your local access")
-                print("point SSID name in 'ssid' and SSID password")
-                print("in 'password'. Then save to reload!")
-                print("*"*45)
+                change_me = "\n"+"*"*45
+                change_me += "\nPlease update the 'secrets.py' file on your\n"
+                change_me += "CIRCUITPY drive to include your local WiFi\n"
+                change_me += "access point SSID name in 'ssid' and SSID\n"
+                change_me += "password in 'password'. Then save to reload!\n"
+                change_me += "*"*45
+                raise OSError(change_me)
             self.neo_status((100, 0, 0)) # red = not connected
             try:
                 self._esp.connect(secrets)
@@ -584,6 +603,22 @@ class PyPortal:
                 print("Cound not connect to internet", error)
                 print("Retrying in 3 seconds...")
                 time.sleep(3)
+
+    @staticmethod
+    def image_converter_url(image_url, width, height, color_depth=16):
+        """Generate a converted image url from the url passed in,
+           with the given width and height. aio_username and aio_key must be
+           set in secrets."""
+        try:
+            aio_username = secrets['aio_username']
+            aio_key = secrets['aio_key']
+        except KeyError:
+            raise KeyError("\n\nOur image converter service require a login/password to rate-limit. Please register for a freeadafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
+
+        return IMAGE_CONVERTER_SERVICE % (aio_username, aio_key,
+                                          width, height,
+                                          color_depth, image_url)
+
     def fetch(self):
         """Fetch data from the url we initialized with, perfom any parsing,
         and display text or graphics. This function does pretty much everything"""
@@ -656,16 +691,10 @@ class PyPortal:
 
         if image_url:
             try:
-                aio_username = secrets['aio_username']
-                aio_key = secrets['aio_key']
-            except KeyError:
-                raise KeyError("\n\nOur image converter service require a login/password to rate-limit. Please register for a freeadafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
-            try:
                 print("original URL:", image_url)
-                image_url = IMAGE_CONVERTER_SERVICE % (aio_username, aio_key,
-                                                       self._image_resize[0],
-                                                       self._image_resize[1],
-                                                       16, image_url)
+                image_url = self.image_converter_url(image_url,
+                                                     self._image_resize[0],
+                                                     self._image_resize[1])
                 print("convert URL:", image_url)
                 # convert image to bitmap and cache
                 #print("**not actually wgetting**")
@@ -708,7 +737,8 @@ class PyPortal:
                 if self._text_wrap[i]:
                     if self._debug:
                         print("Wrapping text")
-                    string = '\n'.join(PyPortal.wrap_nicely(string, self._text_wrap[i]))
+                    lines = PyPortal.wrap_nicely(string, self._text_wrap[i])
+                    string = '\n'.join(lines)
                 self.set_text(string, index=i)
         if len(values) == 1:
             return values[0]
@@ -798,6 +828,7 @@ class PyPortal:
         :param int max_chars: The maximum number of characters on a line before wrapping.
 
         """
+        string = string.replace('\n', '').replace('\r', '') # strip confusing newlines
         words = string.split(' ')
         the_lines = []
         the_line = ""
@@ -811,4 +842,6 @@ class PyPortal:
                 the_line = ''+w
         if the_line:      # last line remaining
             the_lines.append(the_line)
+        # remove first space from first line:
+        the_lines[0] = the_lines[0][1:]
         return the_lines
