@@ -48,7 +48,6 @@ import time
 import gc
 import board
 import busio
-import microcontroller
 from digitalio import DigitalInOut
 import pulseio
 import adafruit_touchscreen
@@ -182,7 +181,7 @@ class PyPortal:
 
         if self._debug:
             print("Init display")
-        self.splash = displayio.Group(max_size=5)
+        self.splash = displayio.Group(max_size=15)
 
         if self._debug:
             print("Init background")
@@ -225,7 +224,7 @@ class PyPortal:
         esp32_cs = DigitalInOut(board.ESP_CS)
         spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 
-        if not self._uselocal:
+        if url and not self._uselocal:
             self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready,
                                                          esp32_reset, esp32_gpio0)
             #self._esp._debug = 1
@@ -245,6 +244,7 @@ class PyPortal:
 
         # set the default background
         self.set_background(self._default_bg)
+        board.DISPLAY.show(self.splash)
 
         if self._debug:
             print("Init SD Card")
@@ -256,7 +256,6 @@ class PyPortal:
             storage.mount(vfs, "/sd")
         except OSError as error:
             print("No SD card found:", error)
-
 
         self._qr_group = None
 
@@ -323,10 +322,8 @@ class PyPortal:
         if self._debug:
             print("Init touchscreen")
         # pylint: disable=no-member
-        self.touchscreen = adafruit_touchscreen.Touchscreen(microcontroller.pin.PB01,
-                                                            microcontroller.pin.PB08,
-                                                            microcontroller.pin.PA06,
-                                                            microcontroller.pin.PB00,
+        self.touchscreen = adafruit_touchscreen.Touchscreen(board.TOUCH_XL, board.TOUCH_XR,
+                                                            board.TOUCH_YD, board.TOUCH_YU,
                                                             calibration=((5200, 59000),
                                                                          (5800, 57000)),
                                                             size=(320, 240))
