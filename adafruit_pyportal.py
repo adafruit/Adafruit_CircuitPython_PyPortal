@@ -48,7 +48,6 @@ import time
 import gc
 import board
 import busio
-import microcontroller
 from digitalio import DigitalInOut
 import pulseio
 import adafruit_touchscreen
@@ -834,9 +833,7 @@ class PyPortal:
         the_line = ""
         for w in words:
             if len(the_line+' '+w) <= max_chars:
-                if the_lines:
-                    the_line += ' '
-                the_line += w
+                the_line += ' '+w
             else:
                 the_lines.append(the_line)
                 the_line = ''+w
