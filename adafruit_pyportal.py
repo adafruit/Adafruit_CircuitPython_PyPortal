@@ -81,6 +81,7 @@ IMAGE_CONVERTER_SERVICE = "https://io.adafruit.com/api/v2/%s/integrations/image-
 # you'll need to pass in an io username and key
 TIME_SERVICE = "https://io.adafruit.com/api/v2/%s/integrations/time/strftime?x-aio-key=%s"
 # our strftime is %Y-%m-%d %H:%M:%S.%L %j %u %z %Z see http://strftime.net/ for decoding details
+# See https://apidock.com/ruby/DateTime/strftime for full options
 TIME_SERVICE_STRFTIME = '&fmt=%25Y-%25m-%25d+%25H%3A%25M%3A%25S.%25L+%25j+%25u+%25z+%25Z'
 LOCALFILE = "local.txt"
 # pylint: enable=line-too-long
@@ -517,7 +518,7 @@ class PyPortal:
             aio_username = secrets['aio_username']
             aio_key = secrets['aio_key']
         except KeyError:
-            raise KeyError("\n\nOur image converter service require a login/password to rate-limit. Please register for a freeadafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
+            raise KeyError("\n\nOur time service requires a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
 
         location = secrets.get('timezone', location)
         if location:
