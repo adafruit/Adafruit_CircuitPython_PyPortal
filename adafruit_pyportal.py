@@ -224,22 +224,22 @@ class PyPortal:
         esp32_cs = DigitalInOut(board.ESP_CS)
         spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 
-        if url and not self._uselocal:
-            self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready,
-                                                         esp32_reset, esp32_gpio0)
-            #self._esp._debug = 1
-            for _ in range(3): # retries
-                try:
-                    print("ESP firmware:", self._esp.firmware_version)
-                    break
-                except RuntimeError:
-                    print("Retrying ESP32 connection")
-                    time.sleep(1)
-                    self._esp.reset()
-            else:
-                raise RuntimeError("Was not able to find ESP32")
+        self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready,
+                                                     esp32_reset, esp32_gpio0)
+        #self._esp._debug = 1
+        for _ in range(3): # retries
+            try:
+                print("ESP firmware:", self._esp.firmware_version)
+                break
+            except RuntimeError:
+                print("Retrying ESP32 connection")
+                time.sleep(1)
+                self._esp.reset()
+        else:
+            raise RuntimeError("Was not able to find ESP32")
+        requests.set_interface(self._esp)
 
-            requests.set_interface(self._esp)
+        if url and not self._uselocal:
             self._connect_esp()
 
         # set the default background
