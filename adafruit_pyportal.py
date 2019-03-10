@@ -78,9 +78,11 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PyPortal.git"
 # pylint: disable=line-too-long
 # you'll need to pass in an io username, width, height, format (bit depth), io key, and then url!
 IMAGE_CONVERTER_SERVICE = "https://io.adafruit.com/api/v2/%s/integrations/image-formatter?x-aio-key=%s&width=%d&height=%d&output=BMP%d&url=%s"
-
-TIME_SERVICE_IPADDR = "http://worldtimeapi.org/api/ip"
-TIME_SERVICE_LOCATION = "http://worldtimeapi.org/api/timezone/"
+# you'll need to pass in an io username and key
+TIME_SERVICE = "https://io.adafruit.com/api/v2/%s/integrations/time/strftime?x-aio-key=%s"
+# our strftime is %Y-%m-%d %H:%M:%S.%L %j %u %z %Z see http://strftime.net/ for decoding details
+# See https://apidock.com/ruby/DateTime/strftime for full options
+TIME_SERVICE_STRFTIME = '&fmt=%25Y-%25m-%25d+%25H%3A%25M%3A%25S.%25L+%25j+%25u+%25z+%25Z'
 LOCALFILE = "local.txt"
 # pylint: enable=line-too-long
 
@@ -224,22 +226,22 @@ class PyPortal:
         esp32_cs = DigitalInOut(board.ESP_CS)
         spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 
-        if url and not self._uselocal:
-            self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready,
-                                                         esp32_reset, esp32_gpio0)
-            #self._esp._debug = 1
-            for _ in range(3): # retries
-                try:
-                    print("ESP firmware:", self._esp.firmware_version)
-                    break
-                except RuntimeError:
-                    print("Retrying ESP32 connection")
-                    time.sleep(1)
-                    self._esp.reset()
-            else:
-                raise RuntimeError("Was not able to find ESP32")
+        self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready,
+                                                     esp32_reset, esp32_gpio0)
+        #self._esp._debug = 1
+        for _ in range(3): # retries
+            try:
+                print("ESP firmware:", self._esp.firmware_version)
+                break
+            except RuntimeError:
+                print("Retrying ESP32 connection")
+                time.sleep(1)
+                self._esp.reset()
+        else:
+            raise RuntimeError("Was not able to find ESP32")
+        requests.set_interface(self._esp)
 
-            requests.set_interface(self._esp)
+        if url and not self._uselocal:
             self._connect_esp()
 
         # set the default background
@@ -512,24 +514,33 @@ class PyPortal:
         # pylint: enable=line-too-long
         self._connect_esp()
         api_url = None
+        try:
+            aio_username = secrets['aio_username']
+            aio_key = secrets['aio_key']
+        except KeyError:
+            raise KeyError("\n\nOur time service requires a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
+
         location = secrets.get('timezone', location)
         if location:
             print("Getting time for timezone", location)
-            api_url = TIME_SERVICE_LOCATION + location
+            api_url = (TIME_SERVICE + "&tz=%s") % (aio_username, aio_key, location)
         else: # we'll try to figure it out from the IP address
             print("Getting time from IP address")
-            api_url = TIME_SERVICE_IPADDR
-
+            api_url = TIME_SERVICE % (aio_username, aio_key)
+        api_url += TIME_SERVICE_STRFTIME
         try:
             response = requests.get(api_url)
-            time_json = response.json()
-            current_time = time_json['datetime']
-            year_day = time_json['day_of_year']
-            week_day = time_json['day_of_week']
-            is_dst = time_json['dst']
+            if self._debug:
+                print("Time request: ", api_url)
+                print("Time reply: ", response.text)
+            times = response.text.split(' ')
+            the_date = times[0]
+            the_time = times[1]
+            year_day = int(times[2])
+            week_day = int(times[3])
+            is_dst = None  # no way to know yet
         except KeyError:
             raise KeyError("Was unable to lookup the time, try setting secrets['timezone'] according to http://worldtimeapi.org/timezones")  # pylint: disable=line-too-long
-        the_date, the_time = current_time.split('T')
         year, month, mday = [int(x) for x in the_date.split('-')]
         the_time = the_time.split('.')[0]
         hours, minutes, seconds = [int(x) for x in the_time.split(':')]
@@ -539,7 +550,6 @@ class PyPortal:
         rtc.RTC().datetime = now
 
         # now clean up
-        time_json = None
         response.close()
         response = None
         gc.collect()
@@ -612,7 +622,7 @@ class PyPortal:
             aio_username = secrets['aio_username']
             aio_key = secrets['aio_key']
         except KeyError:
-            raise KeyError("\n\nOur image converter service require a login/password to rate-limit. Please register for a freeadafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
+            raise KeyError("\n\nOur image converter service require a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
 
         return IMAGE_CONVERTER_SERVICE % (aio_username, aio_key,
                                           width, height,
