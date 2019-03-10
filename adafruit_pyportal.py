@@ -622,7 +622,7 @@ class PyPortal:
             aio_username = secrets['aio_username']
             aio_key = secrets['aio_key']
         except KeyError:
-            raise KeyError("\n\nOur time service require a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
+            raise KeyError("\n\nOur image converter service require a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
 
         return IMAGE_CONVERTER_SERVICE % (aio_username, aio_key,
                                           width, height,
