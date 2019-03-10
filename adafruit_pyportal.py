@@ -549,7 +549,6 @@ class PyPortal:
         rtc.RTC().datetime = now
 
         # now clean up
-        time_json = None
         response.close()
         response = None
         gc.collect()
