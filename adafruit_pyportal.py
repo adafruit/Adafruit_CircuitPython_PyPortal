@@ -55,7 +55,11 @@ import neopixel
 
 from adafruit_esp32spi import adafruit_esp32spi
 import adafruit_esp32spi.adafruit_esp32spi_requests as requests
-from adafruit_display_text.text_area import TextArea
+try:
+    from adafruit_display_text.text_area import TextArea  # pylint: disable=unused-import
+    print("*** WARNING ***\nPlease update your library bundle to the latest 'adafruit_display_text' version as we've deprecated 'text_area' in favor of 'label'")  # pylint: disable=line-too-long
+except ImportError:
+    from adafruit_display_text.Label import Label
 from adafruit_bitmap_font import bitmap_font
 
 import storage
@@ -425,7 +429,7 @@ class PyPortal:
             board.DISPLAY.wait_for_frame()
             return
 
-        self._caption = TextArea(self._caption_font, text=str(caption_text))
+        self._caption = Label(self._caption_font, text=str(caption_text))
         self._caption.x = caption_position[0]
         self._caption.y = caption_position[1]
         self._caption.color = caption_color
@@ -452,7 +456,7 @@ class PyPortal:
                     if item == self._text[index]:
                         break
                     items.append(item)
-                self._text[index] = TextArea(self._text_font, text=string)
+                self._text[index] = Label(self._text_font, text=string)
                 self._text[index].color = self._text_color[index]
                 self._text[index].x = self._text_position[index][0]
                 self._text[index].y = self._text_position[index][1]
@@ -463,7 +467,7 @@ class PyPortal:
 
             if self._text_position[index]:  # if we want it placed somewhere...
                 print("Making text area with string:", string)
-                self._text[index] = TextArea(self._text_font, text=string)
+                self._text[index] = Label(self._text_font, text=string)
                 self._text[index].color = self._text_color[index]
                 self._text[index].x = self._text_position[index][0]
                 self._text[index].y = self._text_position[index][1]
