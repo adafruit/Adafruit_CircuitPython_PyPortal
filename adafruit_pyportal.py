@@ -56,8 +56,8 @@ import neopixel
 from adafruit_esp32spi import adafruit_esp32spi
 import adafruit_esp32spi.adafruit_esp32spi_requests as requests
 try:
-    from adafruit_display_text.text_area import TextArea
-    print("*** WARNING ***\nPlease update your library bundle to the latest 'adafruit_display_text' version as we've deprecated 'text_area' in favor of 'label'")
+    from adafruit_display_text.text_area import TextArea  # pylint: disable=unused-import
+    print("*** WARNING ***\nPlease update your library bundle to the latest 'adafruit_display_text' version as we've deprecated 'text_area' in favor of 'label'")  # pylint: disable=line-too-long
 except ImportError:
     from adafruit_display_text.Label import Label
 from adafruit_bitmap_font import bitmap_font
