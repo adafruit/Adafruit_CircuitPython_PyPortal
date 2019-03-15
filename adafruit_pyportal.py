@@ -359,17 +359,27 @@ class PyPortal:
         if isinstance(file_or_color, str): # its a filenme:
             self._bg_file = open(file_or_color, "rb")
             background = displayio.OnDiskBitmap(self._bg_file)
-            self._bg_sprite = displayio.TileGrid(background,
-                                                 pixel_shader=displayio.ColorConverter(),
-                                                 position=position)
+            try:
+                self._bg_sprite = displayio.TileGrid(background,
+                                                     pixel_shader=displayio.ColorConverter(),
+                                                     position=position)
+            except TypeError:
+                self._bg_sprite = displayio.TileGrid(background,
+                                                     pixel_shader=displayio.ColorConverter(),
+                                                     x=position[0], y=position[1])
         elif isinstance(file_or_color, int):
             # Make a background color fill
             color_bitmap = displayio.Bitmap(320, 240, 1)
             color_palette = displayio.Palette(1)
             color_palette[0] = file_or_color
-            self._bg_sprite = displayio.TileGrid(color_bitmap,
-                                                 pixel_shader=color_palette,
-                                                 position=(0, 0))
+            try:
+                self._bg_sprite = displayio.TileGrid(color_bitmap,
+                                                     pixel_shader=color_palette,
+                                                     position=(0, 0))
+            except TypeError:
+                self._bg_sprite = displayio.TileGrid(color_bitmap,
+                                                     pixel_shader=color_palette,
+                                                     x=position[0], y=position[1])
         else:
             raise RuntimeError("Unknown type of background")
         self._bg_group.append(self._bg_sprite)
