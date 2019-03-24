@@ -294,11 +294,14 @@ class PyPortal:
             self._text_wrap = [None] * num
             self._text_maxlen = [None] * num
             self._text_transform = [None] * num
-            self._text_font = bitmap_font.load_font(text_font)
-            if self._debug:
-                print("Loading font glyphs")
-            # self._text_font.load_glyphs(b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-            #                             b'0123456789:/-_,. ')
+            if text_font == "BuiltinFont":
+                self._text_font = displayio.BuiltinFont
+            else:
+                self._text_font = bitmap_font.load_font(text_font)
+                if self._debug:
+                    print("Loading font glyphs")
+                    # self._text_font.load_glyphs(b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+                    #                             b'0123456789:/-_,. ')
             gc.collect()
 
             for i in range(num):
@@ -414,7 +417,10 @@ class PyPortal:
             glyphs = b'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-!,. "\'?!'
         print("Preloading font glyphs:", glyphs)
         if self._text_font:
-            self._text_font.load_glyphs(glyphs)
+            try:
+                self._text_font.load_glyphs(glyphs)
+            except AttributeError:
+                pass # built in fonts don't have pre-loading
 
     def set_caption(self, caption_text, caption_position, caption_color):
         # pylint: disable=line-too-long
@@ -453,6 +459,7 @@ class PyPortal:
 
         """
         if self._text_font:
+            gc.collect()
             string = str(val)
             if self._text_maxlen[index]:
                 string = string[:self._text_maxlen[index]]
@@ -473,6 +480,8 @@ class PyPortal:
                 self.splash.append(self._text[index])
                 for g in items:
                     self.splash.append(g)
+                items = None
+                gc.collect()
                 return
 
             if self._text_position[index]:  # if we want it placed somewhere...
@@ -642,9 +651,11 @@ class PyPortal:
                                           width, height,
                                           color_depth, image_url)
 
-    def fetch(self):
+    def fetch(self, *, raw_url_text=False, raw_url_json=False):
         """Fetch data from the url we initialized with, perfom any parsing,
-        and display text or graphics. This function does pretty much everything"""
+        and display text or graphics. This function does pretty much everything.
+        If you ask for 'raw_url_text' we return the requests.txt right after
+        we fetch it. If 'raw_url_json' is true, we'll return the json()'d data"""
         json_out = None
         image_url = None
         values = []
@@ -672,6 +683,9 @@ class PyPortal:
         if self._debug:
             print(r.text)
 
+        if raw_url_text:
+            return r.text
+
         if self._image_json_path or self._json_path:
             try:
                 gc.collect()
@@ -681,7 +695,10 @@ class PyPortal:
                 print("Couldn't parse json: ", r.text)
                 raise
             except MemoryError:
+                print("Memory error!");
                 supervisor.reload()
+        if raw_url_json:
+            return json_out
 
         if self._regexp_path:
             import re
