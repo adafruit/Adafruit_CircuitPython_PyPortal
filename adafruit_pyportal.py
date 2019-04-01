@@ -623,7 +623,7 @@ class PyPortal:
             try:
                 self._esp.connect(secrets)
             except RuntimeError as error:
-                print("Cound not connect to internet", error)
+                print("Could not connect to internet", error)
                 print("Retrying in 3 seconds...")
                 time.sleep(3)
 
