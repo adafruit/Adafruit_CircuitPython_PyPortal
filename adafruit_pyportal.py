@@ -562,8 +562,8 @@ class PyPortal:
             year_day = int(times[2])
             week_day = int(times[3])
             is_dst = None  # no way to know yet
-        except KeyError:
-            raise KeyError("Was unable to lookup the time, try setting secrets['timezone'] according to http://worldtimeapi.org/timezones")  # pylint: disable=line-too-long
+        except (KeyError, ValueError):
+            raise KeyError("Was unable to lookup the time from adafruit.io - check IO username & API key and try setting secrets['timezone'] according to http://worldtimeapi.org/timezones")  # pylint: disable=line-too-long
         year, month, mday = [int(x) for x in the_date.split('-')]
         the_time = the_time.split('.')[0]
         hours, minutes, seconds = [int(x) for x in the_time.split(':')]
