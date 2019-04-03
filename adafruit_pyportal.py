@@ -300,8 +300,6 @@ class PyPortal:
                 self._text_font = bitmap_font.load_font(text_font)
                 if self._debug:
                     print("Loading font glyphs")
-                    # self._text_font.load_glyphs(b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-                    #                             b'0123456789:/-_,. ')
             gc.collect()
 
             for i in range(num):
@@ -695,7 +693,7 @@ class PyPortal:
                 print("Couldn't parse json: ", r.text)
                 raise
             except MemoryError:
-                print("Memory error!");
+                print("Memory error!")
                 supervisor.reload()
         if raw_url_json:
             return json_out
