@@ -605,6 +605,8 @@ class PyPortal:
         stamp = time.monotonic() - stamp
         print("Created file of %d bytes in %0.1f seconds" % (os.stat(filename)[6], stamp))
         self.neo_status((0, 0, 0))
+        if not (content_length == os.stat(filename)[6]):
+            raise RuntimeError
 
     def _connect_esp(self):
         self.neo_status((0, 0, 100))
@@ -731,6 +733,9 @@ class PyPortal:
                 except OSError as error:
                     print(error)
                     raise OSError("""\n\nNo writable filesystem found for saving datastream. Insert an SD card or set internal filesystem to be unsafe by setting 'disable_concurrent_write_protection' in the mount options in boot.py""") # pylint: disable=line-too-long
+                except RuntimeError as error:
+                    print(error)
+                    raise(RuntimeError("wget didn't write a complete file"))
                 self.set_background(filename, self._image_position)
             except ValueError as error:
                 print("Error displaying cached image. " + error.args[0])
