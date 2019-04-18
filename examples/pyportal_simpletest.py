@@ -1,5 +1,5 @@
 # NOTE: Make sure you've created your secrets.py file before running this example
-#       see here: https://learn.adafruit.com/adafruit-pyportal/internet-connect#whats-a-secrets-file-17-2
+# https://learn.adafruit.com/adafruit-pyportal/internet-connect#whats-a-secrets-file-17-2
 import board
 from adafruit_pyportal import PyPortal
 
