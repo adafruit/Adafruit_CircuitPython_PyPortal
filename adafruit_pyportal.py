@@ -108,6 +108,7 @@ class PyPortal:
     """Class representing the Adafruit PyPortal.
 
     :param url: The URL of your data source. Defaults to ``None``.
+    :param headers: The headers for authentication, typically used by Azure API's.
     :param json_path: The list of json traversal to get data out of. Can be list of lists for
                       multiple data points. Defaults to ``None`` to not use json.
     :param regexp_path: The list of regexp strings to get data out (use a single regexp group). Can
@@ -144,7 +145,7 @@ class PyPortal:
 
     """
     # pylint: disable=too-many-instance-attributes, too-many-locals, too-many-branches, too-many-statements
-    def __init__(self, *, url=None, json_path=None, regexp_path=None,
+    def __init__(self, *, url=None, headers=None, json_path=None, regexp_path=None,
                  default_bg=0x000000, status_neopixel=None,
                  text_font=None, text_position=None, text_color=0x808080,
                  text_wrap=False, text_maxlen=0, text_transform=None,
@@ -162,6 +163,7 @@ class PyPortal:
         self.set_backlight(1.0)  # turn on backlight
 
         self._url = url
+        self._headers = headers
         if json_path:
             if isinstance(json_path[0], (list, tuple)):
                 self._json_path = json_path
@@ -666,7 +668,7 @@ class PyPortal:
             print("Retrieving data...", end='')
             self.neo_status((100, 100, 0))   # yellow = fetching data
             gc.collect()
-            r = requests.get(self._url)
+            r = requests.get(self._url, headers=self._headers)
             gc.collect()
             self.neo_status((0, 0, 100))   # green = got data
             print("Reply is OK!")
