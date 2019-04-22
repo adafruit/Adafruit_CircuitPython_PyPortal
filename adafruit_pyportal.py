@@ -694,7 +694,7 @@ class PyPortal:
             import re
 
         if self._image_url_path:
-          image_url = self._image_url_path
+            image_url = self._image_url_path
 
         # extract desired text/values from json
         if self._json_path:
