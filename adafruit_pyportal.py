@@ -141,6 +141,8 @@ class PyPortal:
     :param caption_position: The position of your caption on the display as an (x, y) tuple.
                              Defaults to ``None``.
     :param caption_color: The color of your caption. Must be a hex value, e.g. ``0x808000``.
+    :param image_url_path: The HTTP traversal path for a background image to display.
+                             Defaults to ``None``.
     :param debug: Turn on debug print outs. Defaults to False.
 
     """
@@ -151,7 +153,7 @@ class PyPortal:
                  text_wrap=False, text_maxlen=0, text_transform=None,
                  image_json_path=None, image_resize=None, image_position=None,
                  caption_text=None, caption_font=None, caption_position=None,
-                 caption_color=0x808080,
+                 caption_color=0x808080, image_url_path=None,
                  success_callback=None, debug=False):
 
         self._debug = debug
@@ -317,9 +319,10 @@ class PyPortal:
             self._text = None
 
         self._image_json_path = image_json_path
+        self._image_url_path = image_url_path
         self._image_resize = image_resize
         self._image_position = image_position
-        if image_json_path:
+        if image_json_path or image_url_path:
             if self._debug:
                 print("Init image path")
             if not self._image_position:
@@ -689,6 +692,9 @@ class PyPortal:
 
         if self._regexp_path:
             import re
+
+        if self._image_url_path:
+            image_url = self._image_url_path
 
         # extract desired text/values from json
         if self._json_path:
