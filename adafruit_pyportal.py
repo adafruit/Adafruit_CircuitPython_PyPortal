@@ -649,9 +649,13 @@ class PyPortal:
                                           width, height,
                                           color_depth, image_url)
 
-    def fetch(self):
+    def fetch(self, refresh_url=None):
         """Fetch data from the url we initialized with, perfom any parsing,
-        and display text or graphics. This function does pretty much everything"""
+        and display text or graphics. This function does pretty much everything
+        Optionally update the URL
+        """
+        if refresh_url:
+            self._url = refresh_url
         json_out = None
         image_url = None
         values = []
