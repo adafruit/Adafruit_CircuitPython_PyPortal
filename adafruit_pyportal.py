@@ -42,12 +42,6 @@ Implementation Notes
 
 * Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
 """
-"""
-04/19/2019
-John Turner
-Added ability to call the fetch object with a URL fetch(URL) this allows the URL to be updated once pyportal is initialized
-
-"""
 
 import os
 import time
