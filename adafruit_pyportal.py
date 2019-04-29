@@ -653,7 +653,7 @@ class PyPortal:
         return IMAGE_CONVERTER_SERVICE % (aio_username, aio_key,
                                           width, height,
                                           color_depth, image_url)
-										  
+
     def io_push(self, feed, data):
         # pylint: disable=line-too-long
         """Push data to an adafruit.io feed
@@ -674,12 +674,12 @@ class PyPortal:
         io_connect = RESTClient(aio_username, aio_key, wifi)
 
         try:
-            feed_ID = io_connect.get_feed(feed)
+            feed_id = io_connect.get_feed(feed)
         except AdafruitIO_RequestError:
             # If no feed exists, create one
-            feed_ID = io_connect.create_new_feed(feed)
+            feed_id = io_connect.create_new_feed(feed)
 
-        io_connect.send_data(feed_ID['key'], data)
+        io_connect.send_data(feed_id['key'], data)
 
     def fetch(self, refresh_url=None):
         """Fetch data from the url we initialized with, perfom any parsing,
