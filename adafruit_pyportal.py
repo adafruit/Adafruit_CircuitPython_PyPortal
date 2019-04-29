@@ -256,7 +256,7 @@ class PyPortal:
 
         if self._debug:
             print("My IP address is", self._esp.pretty_ip(self._esp.ip_address))
-			
+
         # set the default background
         self.set_background(self._default_bg)
         board.DISPLAY.show(self.splash)
@@ -669,18 +669,18 @@ class PyPortal:
             aio_key = secrets['aio_key']
         except KeyError:
             raise KeyError("\n\n")
-		
+
         wifi = adafruit_esp32spi_wifimanager.ESPSPI_WiFiManager(self._esp, secrets, None)
-        io = RESTClient(aio_username, aio_key, wifi)
+        io_connect = RESTClient(aio_username, aio_key, wifi)
 
         try:
-            feedID = io.get_feed(feed)
+            feed_ID = io_connect.get_feed(feed)
         except AdafruitIO_RequestError:
             # If no feed exists, create one
-            feedID = io.create_new_feed(feed)
+            feed_ID = io_connect.create_new_feed(feed)
 
-        io.send_data(feedID['key'], data)
-		
+        io_connect.send_data(feed_ID['key'], data)
+
     def fetch(self, refresh_url=None):
         """Fetch data from the url we initialized with, perfom any parsing,
         and display text or graphics. This function does pretty much everything
