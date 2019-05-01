@@ -53,7 +53,7 @@ import pulseio
 import adafruit_touchscreen
 import neopixel
 
-from adafruit_esp32spi import adafruit_esp32spi
+from adafruit_esp32spi import adafruit_esp32spi, adafruit_esp32spi_wifimanager
 import adafruit_esp32spi.adafruit_esp32spi_requests as requests
 try:
     from adafruit_display_text.text_area import TextArea  # pylint: disable=unused-import
@@ -68,6 +68,8 @@ import displayio
 import audioio
 import rtc
 import supervisor
+
+from adafruit_io.adafruit_io import RESTClient, AdafruitIO_RequestError
 
 try:
     from secrets import secrets
@@ -251,6 +253,9 @@ class PyPortal:
 
         if url and not self._uselocal:
             self._connect_esp()
+
+        if self._debug:
+            print("My IP address is", self._esp.pretty_ip(self._esp.ip_address))
 
         # set the default background
         self.set_background(self._default_bg)
@@ -648,6 +653,33 @@ class PyPortal:
         return IMAGE_CONVERTER_SERVICE % (aio_username, aio_key,
                                           width, height,
                                           color_depth, image_url)
+
+    def io_push(self, feed, data):
+        # pylint: disable=line-too-long
+        """Push data to an adafruit.io feed
+
+        :param str feed: Name of feed to push data to.
+        :param data: data to send to feed
+
+        """
+        # pylint: enable=line-too-long
+
+        try:
+            aio_username = secrets['aio_username']
+            aio_key = secrets['aio_key']
+        except KeyError:
+            raise KeyError("\n\n")
+
+        wifi = adafruit_esp32spi_wifimanager.ESPSPI_WiFiManager(self._esp, secrets, None)
+        io_connect = RESTClient(aio_username, aio_key, wifi)
+
+        try:
+            feed_id = io_connect.get_feed(feed)
+        except AdafruitIO_RequestError:
+            # If no feed exists, create one
+            feed_id = io_connect.create_new_feed(feed)
+
+        io_connect.send_data(feed_id['key'], data)
 
     def fetch(self, refresh_url=None):
         """Fetch data from the url we initialized with, perfom any parsing,
