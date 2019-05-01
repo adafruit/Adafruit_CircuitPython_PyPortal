@@ -678,8 +678,13 @@ class PyPortal:
         except AdafruitIO_RequestError:
             # If no feed exists, create one
             feed_id = io_connect.create_new_feed(feed)
+        except RuntimeError as exception:
+            print("Some error occured, retrying! -", exception)
 
-        io_connect.send_data(feed_id['key'], data)
+        try:
+            io_connect.send_data(feed_id['key'], data)
+        except RuntimeError as exception:
+            print("Some error occured, retrying! -", exception)
 
     def fetch(self, refresh_url=None):
         """Fetch data from the url we initialized with, perfom any parsing,
