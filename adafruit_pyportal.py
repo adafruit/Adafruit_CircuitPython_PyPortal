@@ -784,69 +784,35 @@ class PyPortal:
             return values[0]
         return values
 
-    def show_QR(self, qr_data, qr_size=128, position=None):  # pylint: disable=invalid-name
+    def show_QR(self, qr_data, qr_size=1, x=0, y=0):
         """Display a QR code on the TFT
 
         :param qr_data: The data for the QR code.
-        :param int qr_size: The size of the QR code in pixels.
+        :param int qr_size: The scale of the QR code.
         :param position: The (x, y) tuple position of the QR code on the display.
 
         """
         import adafruit_miniqr
-
-        if not qr_data:  # delete it
-            if self._qr_group:
-                try:
-                    self._qr_group.pop()
-                except IndexError:
-                    pass
-                board.DISPLAY.refresh_soon()
-                board.DISPLAY.wait_for_frame()
-            return
-
-        if not position:
-            position = (0, 0)
-        if qr_size % 32 != 0:
-            raise RuntimeError("QR size must be divisible by 32")
-
+        # generate the QR code
         qrcode = adafruit_miniqr.QRCode()
         qrcode.add_data(qr_data)
         qrcode.make()
 
-        # pylint: disable=invalid-name
-        # how big each pixel is, add 2 blocks on either side
-        BLOCK_SIZE = qr_size // (qrcode.matrix.width+4)
-        # Center the QR code in the middle
-        X_OFFSET = (qr_size - BLOCK_SIZE * qrcode.matrix.width) // 2
-        Y_OFFSET = (qr_size - BLOCK_SIZE * qrcode.matrix.height) // 2
-
-        # monochome (2 color) palette
+        # monochrome (2 color) palette
         palette = displayio.Palette(2)
         palette[0] = 0xFFFFFF
         palette[1] = 0x000000
 
-        # bitmap the size of the matrix + borders, monochrome (2 colors)
-        qr_bitmap = displayio.Bitmap(qr_size, qr_size, 2)
+        # bitmap the size of the matrix, monochrome (2 colors)
+        qr_bitmap = displayio.Bitmap(qrcode.matrix.width, qrcode.matrix.height, 2)
 
-        # raster the QR code
-        line = bytearray(qr_size // 8)  # monochrome means 8 pixels per byte
-        for y in range(qrcode.matrix.height):    # each scanline in the height
-            for i, _ in enumerate(line):    # initialize it to be empty
-                line[i] = 0
-            for x in range(qrcode.matrix.width):
-                if qrcode.matrix[x, y]:
-                    for b in range(BLOCK_SIZE):
-                        _x = X_OFFSET + x * BLOCK_SIZE + b
-                        line[_x // 8] |= 1 << (7-(_x % 8))
+        # transcribe QR code into bitmap
+        for xx in range(qrcode.matrix.width):
+            for yy in range(qrcode.matrix.height):
+                qr_bitmap[xx, yy] = 1 if qrcode.matrix[xx, yy] else 0
 
-            for b in range(BLOCK_SIZE):
-                # load this line of data in, as many time as block size
-                for i, byte in enumerate(line):
-                    qr_bitmap[Y_OFFSET + y*BLOCK_SIZE+b + i] = byte
-        # pylint: enable=invalid-name
-
-        # display the bitmap using our palette
-        qr_sprite = displayio.Sprite(qr_bitmap, pixel_shader=palette, position=position)
+        # display the QR code
+        qr_sprite = displayio.TileGrid(qr_bitmap, pixel_shader=palette)
         if self._qr_group:
             try:
                 self._qr_group.pop()
@@ -855,9 +821,11 @@ class PyPortal:
         else:
             self._qr_group = displayio.Group()
             self.splash.append(self._qr_group)
+        self._qr_group.scale = qr_size
+        self._qr_group.x = x
+        self._qr_group.y = y
         self._qr_group.append(qr_sprite)
-        board.DISPLAY.refresh_soon()
-        board.DISPLAY.wait_for_frame()
+        board.DISPLAY.show(self._qr_group)
 
     # return a list of lines with wordwrapping
     @staticmethod
