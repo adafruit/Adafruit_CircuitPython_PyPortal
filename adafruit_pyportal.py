@@ -804,14 +804,16 @@ class PyPortal:
         palette[0] = 0xFFFFFF
         palette[1] = 0x000000
 
-        # bitmap the size of the matrix, monochrome (2 colors)
-        qr_bitmap = displayio.Bitmap(qrcode.matrix.width, qrcode.matrix.height, 2)
-
         # pylint: disable=invalid-name
+        # bitmap the size of the matrix, plus border, monochrome (2 colors)
+        qr_bitmap = displayio.Bitmap(qrcode.matrix.width + 2, qrcode.matrix.height + 2, 2)
+        for i in range(qr_bitmap.width * qr_bitmap.height):
+            qr_bitmap[i] = 0
+
         # transcribe QR code into bitmap
         for xx in range(qrcode.matrix.width):
             for yy in range(qrcode.matrix.height):
-                qr_bitmap[xx, yy] = 1 if qrcode.matrix[xx, yy] else 0
+                qr_bitmap[xx+1, yy+1] = 1 if qrcode.matrix[xx, yy] else 0
 
         # display the QR code
         qr_sprite = displayio.TileGrid(qr_bitmap, pixel_shader=palette)
