@@ -784,12 +784,13 @@ class PyPortal:
             return values[0]
         return values
 
-    def show_QR(self, qr_data, qr_size=1, x=0, y=0):
+    def show_QR(self, qr_data, qr_size=1, x=0, y=0):  # pylint: disable=invalid-name
         """Display a QR code on the TFT
 
         :param qr_data: The data for the QR code.
         :param int qr_size: The scale of the QR code.
-        :param position: The (x, y) tuple position of the QR code on the display.
+        :param x: The x position of upper left corner of the QR code on the display.
+        :param y: The y position of upper left corner of the QR code on the display.
 
         """
         import adafruit_miniqr
@@ -806,6 +807,7 @@ class PyPortal:
         # bitmap the size of the matrix, monochrome (2 colors)
         qr_bitmap = displayio.Bitmap(qrcode.matrix.width, qrcode.matrix.height, 2)
 
+        # pylint: disable=invalid-name
         # transcribe QR code into bitmap
         for xx in range(qrcode.matrix.width):
             for yy in range(qrcode.matrix.height):
