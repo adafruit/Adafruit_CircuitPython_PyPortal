@@ -673,18 +673,27 @@ class PyPortal:
         wifi = adafruit_esp32spi_wifimanager.ESPSPI_WiFiManager(self._esp, secrets, None)
         io_connect = RESTClient(aio_username, aio_key, wifi)
 
-        try:
-            feed_id = io_connect.get_feed(feed)
-        except AdafruitIO_RequestError:
-            # If no feed exists, create one
-            feed_id = io_connect.create_new_feed(feed)
-        except RuntimeError as exception:
-            print("Some error occured, retrying! -", exception)
+        while True:
+            try:
+                feed_id = io_connect.get_feed(feed)
+            except AdafruitIO_RequestError:
+                # If no feed exists, create one
+                feed_id = io_connect.create_new_feed(feed)
+            except RuntimeError as exception:
+                print("An error occured, retrying! 1 -", exception)
+                continue
+            break
 
-        try:
-            io_connect.send_data(feed_id['key'], data)
-        except RuntimeError as exception:
-            print("Some error occured, retrying! -", exception)
+        while True:
+            try:
+                io_connect.send_data(feed_id['key'], data)
+            except RuntimeError as exception:
+                print("An error occured, retrying! 2 -", exception)
+                continue
+            except NameError as exception:
+                print(feed_id['key'], data, exception)
+                continue
+            break
 
     def fetch(self, refresh_url=None):
         """Fetch data from the url we initialized with, perfom any parsing,
