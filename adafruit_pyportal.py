@@ -268,6 +268,8 @@ class PyPortal:
             print("No SD card found:", error)
 
         self._qr_group = None
+        # Tracks whether we've hidden the background when we showed the QR code.
+        self._qr_only = False
 
         if self._debug:
             print("Init caption")
@@ -784,13 +786,14 @@ class PyPortal:
             return values[0]
         return values
 
-    def show_QR(self, qr_data, qr_size=1, x=0, y=0):  # pylint: disable=invalid-name
+    def show_QR(self, qr_data, qr_size=1, x=0, y=0, clear_background=False):  # pylint: disable=invalid-name
         """Display a QR code on the TFT
 
         :param qr_data: The data for the QR code.
         :param int qr_size: The scale of the QR code.
         :param x: The x position of upper left corner of the QR code on the display.
         :param y: The y position of upper left corner of the QR code on the display.
+        :param clear_background: Show the QR code on a black background if True, otherwise put it on top of the existing background.
 
         """
         import adafruit_miniqr
@@ -829,7 +832,23 @@ class PyPortal:
         self._qr_group.x = x
         self._qr_group.y = y
         self._qr_group.append(qr_sprite)
-        board.DISPLAY.show(self._qr_group)
+        if clear_background:
+            board.DISPLAY.show(self._qr_group)
+            self._qr_only = True
+        else:
+            self._qr_only = False
+
+    def hide_QR(self):
+        """Clear any QR codes that are currently on the screen
+        """
+
+        if self._qr_only:
+            board.DISPLAY.show(self.splash)
+        else:
+            try:
+                self._qr_group.pop()
+            except IndexError: # later test if empty
+                pass
 
     # return a list of lines with wordwrapping
     @staticmethod
