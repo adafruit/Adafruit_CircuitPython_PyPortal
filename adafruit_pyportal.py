@@ -847,7 +847,7 @@ class PyPortal:
         else:
             try:
                 self._qr_group.pop()
-            except IndexError, AttributeError: # later test if empty
+            except (IndexError, AttributeError): # later test if empty
                 pass
 
     # return a list of lines with wordwrapping
