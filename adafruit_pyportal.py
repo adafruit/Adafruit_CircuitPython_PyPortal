@@ -793,7 +793,7 @@ class PyPortal:
         :param int qr_size: The scale of the QR code.
         :param x: The x position of upper left corner of the QR code on the display.
         :param y: The y position of upper left corner of the QR code on the display.
-        :param clear_background: Show the QR code on a black background if True, otherwise put it on top of the existing background.
+        :param clear_background: Show the QR code on a black background if True.
 
         """
         import adafruit_miniqr
