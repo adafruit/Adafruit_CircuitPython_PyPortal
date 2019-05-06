@@ -654,11 +654,11 @@ class PyPortal:
                                           width, height,
                                           color_depth, image_url)
 
-    def io_push(self, feed, data):
+    def io_push(self, feed_key, data):
         # pylint: disable=line-too-long
         """Push data to an adafruit.io feed
 
-        :param str feed: Name of feed to push data to.
+        :param str feed_key: Name of feed to push data to.
         :param data: data to send to feed
 
         """
@@ -668,17 +668,17 @@ class PyPortal:
             aio_username = secrets['aio_username']
             aio_key = secrets['aio_key']
         except KeyError:
-            raise KeyError("\n\n")
+            raise KeyError("Adafruit IO secrets are kept in secrets.py, please add them there!\n\n")
 
         wifi = adafruit_esp32spi_wifimanager.ESPSPI_WiFiManager(self._esp, secrets, None)
-        io_connect = RESTClient(aio_username, aio_key, wifi)
+        io_client = RESTClient(aio_username, aio_key, wifi)
 
         while True:
             try:
-                feed_id = io_connect.get_feed(feed)
+                feed_id = io_client.get_feed(feed_key)
             except AdafruitIO_RequestError:
                 # If no feed exists, create one
-                feed_id = io_connect.create_new_feed(feed)
+                feed_id = io_client.create_new_feed(feed_key)
             except RuntimeError as exception:
                 print("An error occured, retrying! 1 -", exception)
                 continue
@@ -686,7 +686,7 @@ class PyPortal:
 
         while True:
             try:
-                io_connect.send_data(feed_id['key'], data)
+                io_client.send_data(feed_id['key'], data)
             except RuntimeError as exception:
                 print("An error occured, retrying! 2 -", exception)
                 continue
