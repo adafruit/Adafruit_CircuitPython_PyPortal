@@ -76,7 +76,7 @@ except ImportError:
 the secrets dictionary must contain 'ssid' and 'password' at a minimum""")
     raise
 
-__version__ = "0.0.0-auto.0"
+__version__ = "3.0.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PyPortal.git"
 
 # pylint: disable=line-too-long
@@ -154,7 +154,7 @@ class PyPortal:
                  image_json_path=None, image_resize=None, image_position=None,
                  caption_text=None, caption_font=None, caption_position=None,
                  caption_color=0x808080, image_url_path=None,
-                 success_callback=None, debug=False):
+                 success_callback=None,  esp=None, passed_spi=None, debug=False ):
 
         self._debug = debug
 
@@ -225,16 +225,26 @@ class PyPortal:
         except OSError:
             pass # they deleted the file, no biggie!
 
-        # Make ESP32 connection
-        if self._debug:
-            print("Init ESP32")
-        esp32_ready = DigitalInOut(board.ESP_BUSY)
-        esp32_gpio0 = DigitalInOut(board.ESP_GPIO0)
-        esp32_reset = DigitalInOut(board.ESP_RESET)
-        esp32_cs = DigitalInOut(board.ESP_CS)
-        spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
+        # If there was a passed ESP Object
+        if esp:
+            if self._debug:
+                print("ESP32 Passed to PyPortal")
+            self._esp = esp
+            if passed_spi: #If SPI Object Passed
+                spi = passed_spi
+            else:
+                spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
+        # Else: Make ESP32 connection
+        else:
+            if self._debug:
+                print("Init ESP32")
+            esp32_ready = DigitalInOut(board.ESP_BUSY)
+            esp32_gpio0 = DigitalInOut(board.ESP_GPIO0)
+            esp32_reset = DigitalInOut(board.ESP_RESET)
+            esp32_cs = DigitalInOut(board.ESP_CS)
+            spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 
-        self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready,
+            self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready,
                                                      esp32_reset, esp32_gpio0)
         #self._esp._debug = 1
         for _ in range(3): # retries
