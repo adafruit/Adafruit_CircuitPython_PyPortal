@@ -76,7 +76,7 @@ except ImportError:
 the secrets dictionary must contain 'ssid' and 'password' at a minimum""")
     raise
 
-__version__ = "3.0.0"
+__version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PyPortal.git"
 
 # pylint: disable=line-too-long
