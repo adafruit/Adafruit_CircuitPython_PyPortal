@@ -154,7 +154,7 @@ class PyPortal:
                  image_json_path=None, image_resize=None, image_position=None,
                  caption_text=None, caption_font=None, caption_position=None,
                  caption_color=0x808080, image_url_path=None,
-                 success_callback=None,  esp=None, passed_spi=None, debug=False ):
+                 success_callback=None, esp=None, passed_spi=None, debug=False):
 
         self._debug = debug
 
@@ -245,7 +245,7 @@ class PyPortal:
             spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 
             self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready,
-                                                     esp32_reset, esp32_gpio0)
+                                                         esp32_reset, esp32_gpio0)
         #self._esp._debug = 1
         for _ in range(3): # retries
             try:
