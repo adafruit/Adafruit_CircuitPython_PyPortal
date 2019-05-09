@@ -834,9 +834,7 @@ class PyPortal:
         self._qr_group.append(qr_sprite)
         if hide_background:
             board.DISPLAY.show(self._qr_group)
-            self._qr_only = True
-        else:
-            self._qr_only = False
+        self._qr_only = hide_background
 
     def hide_QR(self):
         """Clear any QR codes that are currently on the screen
