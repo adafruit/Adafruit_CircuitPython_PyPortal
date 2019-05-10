@@ -143,6 +143,9 @@ class PyPortal:
     :param caption_color: The color of your caption. Must be a hex value, e.g. ``0x808000``.
     :param image_url_path: The HTTP traversal path for a background image to display.
                              Defaults to ``None``.
+    :param esp: A passed ESP32 object, Can be used in cases where the ESP32 chip needs to be used
+                             before calling the pyportal class. Defaults to ``None``.
+    :param busio.SPI external_spi: A previously declared spi object. Defaults to ``None``.
     :param debug: Turn on debug print outs. Defaults to False.
 
     """
@@ -154,7 +157,7 @@ class PyPortal:
                  image_json_path=None, image_resize=None, image_position=None,
                  caption_text=None, caption_font=None, caption_position=None,
                  caption_color=0x808080, image_url_path=None,
-                 success_callback=None, debug=False):
+                 success_callback=None, esp=None, external_spi=None, debug=False):
 
         self._debug = debug
 
@@ -225,17 +228,25 @@ class PyPortal:
         except OSError:
             pass # they deleted the file, no biggie!
 
-        # Make ESP32 connection
-        if self._debug:
-            print("Init ESP32")
-        esp32_ready = DigitalInOut(board.ESP_BUSY)
-        esp32_gpio0 = DigitalInOut(board.ESP_GPIO0)
-        esp32_reset = DigitalInOut(board.ESP_RESET)
-        esp32_cs = DigitalInOut(board.ESP_CS)
-        spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
+        if esp:  # If there was a passed ESP Object
+            if self._debug:
+                print("Passed ESP32 to PyPortal")
+            self._esp = esp
+            if external_spi: #If SPI Object Passed
+                spi = external_spi
+            else:  # Else: Make ESP32 connection
+                spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
+        else:
+            if self._debug:
+                print("Init ESP32")
+            esp32_ready = DigitalInOut(board.ESP_BUSY)
+            esp32_gpio0 = DigitalInOut(board.ESP_GPIO0)
+            esp32_reset = DigitalInOut(board.ESP_RESET)
+            esp32_cs = DigitalInOut(board.ESP_CS)
+            spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 
-        self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready,
-                                                     esp32_reset, esp32_gpio0)
+            self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready,
+                                                         esp32_reset, esp32_gpio0)
         #self._esp._debug = 1
         for _ in range(3): # retries
             try:
