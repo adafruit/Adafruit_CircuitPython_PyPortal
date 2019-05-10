@@ -786,7 +786,7 @@ class PyPortal:
             return values[0]
         return values
 
-    def show_QR(self, qr_data, qr_size=1, x=0, y=0, hide_background=False):  # pylint: disable=invalid-name
+    def show_QR(self, qr_data, *, qr_size=1, x=0, y=0, hide_background=False):  # pylint: disable=invalid-name
         """Display a QR code on the TFT
 
         :param qr_data: The data for the QR code.
@@ -836,7 +836,7 @@ class PyPortal:
             board.DISPLAY.show(self._qr_group)
         self._qr_only = hide_background
 
-    def hide_QR(self):
+    def hide_QR(self): # pylint: disable=invalid-name
         """Clear any QR codes that are currently on the screen
         """
 
