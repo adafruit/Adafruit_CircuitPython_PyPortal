@@ -661,6 +661,13 @@ class PyPortal:
         return IMAGE_CONVERTER_SERVICE % (aio_username, aio_key,
                                           width, height,
                                           color_depth, image_url)
+    def sd_check(self):
+        """Returns True if there is an SD card preset and False
+        if there is no SD card. The _sdcard value is set in _init
+        """
+        if self._sdcard:
+            return True
+        return False
 
     def fetch(self, refresh_url=None):
         """Fetch data from the url we initialized with, perfom any parsing,
