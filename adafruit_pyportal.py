@@ -478,19 +478,19 @@ class PyPortal:
                 # print("Replacing text area with :", string)
                 # self._text[index].text = string
                 # return
-                items = []
-                while len(self.splash):  # pylint: disable=len-as-condition
-                    item = self.splash.pop()
-                    if item == self._text[index]:
-                        break
-                    items.append(item)
+                try:
+                    text_index = self.splash.index(self._text[index])
+                except AttributeError:
+                    for i in range(len(self.splash)):
+                        if self.splash[i] == self._text[index]:
+                            text_index = i
+                            break
+
                 self._text[index] = Label(self._text_font, text=string)
                 self._text[index].color = self._text_color[index]
                 self._text[index].x = self._text_position[index][0]
                 self._text[index].y = self._text_position[index][1]
-                self.splash.append(self._text[index])
-                for g in items:
-                    self.splash.append(g)
+                self.splash[text_index] = self._text[index]
                 return
 
             if self._text_position[index]:  # if we want it placed somewhere...
