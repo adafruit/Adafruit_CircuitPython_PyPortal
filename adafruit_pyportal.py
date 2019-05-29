@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2019 Limor Fried for Adafruit Industries
+# Copyright (c) 2019 Limor Fried for Adafruit Industries, Kevin J. Walters
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 CircuitPython driver for Adafruit PyPortal.
 
 
-* Author(s): Limor Fried
+* Author(s): Limor Fried, Kevin J. Walters
 
 Implementation Notes
 --------------------
@@ -127,6 +127,8 @@ class PyPortal:
                       ``False``, no wrapping.
     :param text_maxlen: The max length of the text for text wrapping. Defaults to 0.
     :param text_transform: A function that will be called on the text before display
+    :param json_transforms: A function or a list of functions to call with the parsed JSON.
+                           Changes and additions are permitted for the ``dict'' object.
     :param image_json_path: The JSON traversal path for a background image to display. Defaults to
                             ``None``.
     :param image_resize: What size to resize the image we got from the json_path, make this a tuple
@@ -154,7 +156,8 @@ class PyPortal:
                  default_bg=0x000000, status_neopixel=None,
                  text_font=None, text_position=None, text_color=0x808080,
                  text_wrap=False, text_maxlen=0, text_transform=None,
-                 image_json_path=None, image_resize=None, image_position=None,
+                 json_transforms=None, image_json_path=None,
+                 image_resize=None, image_position=None,
                  caption_text=None, caption_font=None, caption_position=None,
                  caption_color=0x808080, image_url_path=None,
                  success_callback=None, esp=None, external_spi=None, debug=False):
@@ -330,6 +333,16 @@ class PyPortal:
         else:
             self._text_font = None
             self._text = None
+
+        # Add any JSON translators
+        self._json_transforms = []
+        if json_transforms:
+            if callable(json_transforms):
+                self._json_transforms.append(json_transforms)
+            else:
+                self._json_transforms.extend(filter(lambda fn : callable(fn),
+                                                    json_transforms
+                                                   ))
 
         self._image_json_path = image_json_path
         self._image_url_path = image_url_path
@@ -712,6 +725,14 @@ class PyPortal:
 
         if self._image_url_path:
             image_url = self._image_url_path
+
+        # optional JSON post processing, apply any transformations
+        # these MAY change/add element
+        for idx, json_transform in enumerate(self._json_transforms):
+            try:
+                json_transform(json_out)
+            except Exception as error:
+                print("Exception from json_transform: ", idx, error)
 
         # extract desired text/values from json
         if self._json_path:
