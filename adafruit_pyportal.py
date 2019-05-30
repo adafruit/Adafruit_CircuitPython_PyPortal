@@ -340,9 +340,7 @@ class PyPortal:
             if callable(json_transforms):
                 self._json_transforms.append(json_transforms)
             else:
-                self._json_transforms.extend(filter(lambda fn : callable(fn),
-                                                    json_transforms
-                                                   ))
+                self._json_transforms.extend(filter(callable, json_transforms))
 
         self._image_json_path = image_json_path
         self._image_url_path = image_url_path
@@ -733,6 +731,7 @@ class PyPortal:
                 json_transform(json_out)
             except Exception as error:
                 print("Exception from json_transform: ", idx, error)
+                raise
 
         # extract desired text/values from json
         if self._json_path:
