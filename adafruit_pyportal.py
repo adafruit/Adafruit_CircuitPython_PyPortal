@@ -128,7 +128,7 @@ class PyPortal:
     :param text_maxlen: The max length of the text for text wrapping. Defaults to 0.
     :param text_transform: A function that will be called on the text before display
     :param json_transforms: A function or a list of functions to call with the parsed JSON.
-                           Changes and additions are permitted for the ``dict'' object.
+                           Changes and additions are permitted for the ``dict`` object.
     :param image_json_path: The JSON traversal path for a background image to display. Defaults to
                             ``None``.
     :param image_resize: What size to resize the image we got from the json_path, make this a tuple
