@@ -654,11 +654,11 @@ class PyPortal:
                                           width, height,
                                           color_depth, image_url)
 
-    def io_push(self, feed_key, data):
+    def push_to_io(self, feed_key, data):
         # pylint: disable=line-too-long
         """Push data to an adafruit.io feed
 
-        :param str feed_key: Name of feed to push data to.
+        :param str feed_key: Name of feed key to push data to.
         :param data: data to send to feed
 
         """
