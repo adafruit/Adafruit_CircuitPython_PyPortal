@@ -362,6 +362,13 @@ class PyPortal:
 
         gc.collect()
 
+    def set_headers(self, headers):
+        """Set the headers used by fetch().
+
+        :param headers: The new header dictionary
+        """
+        self._headers = headers
+
     def set_background(self, file_or_color, position=None):
         """The background image to a bitmap file.
 
