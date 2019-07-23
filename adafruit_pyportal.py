@@ -69,7 +69,7 @@ import audioio
 import rtc
 import supervisor
 
-from adafruit_io.adafruit_io import RESTClient, AdafruitIO_RequestError
+from adafruit_io.adafruit_io import IO_HTTP, AdafruitIO_RequestError
 
 try:
     from secrets import secrets
