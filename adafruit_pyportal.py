@@ -691,7 +691,7 @@ class PyPortal:
             raise KeyError("Adafruit IO secrets are kept in secrets.py, please add them there!\n\n")
 
         wifi = adafruit_esp32spi_wifimanager.ESPSPI_WiFiManager(self._esp, secrets, None)
-        io_client = RESTClient(aio_username, aio_key, wifi)
+        io_client = IO_HTTP(aio_username, aio_key, wifi)
 
         while True:
             try:
