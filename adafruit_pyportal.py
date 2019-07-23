@@ -69,7 +69,7 @@ import audioio
 import rtc
 import supervisor
 
-from adafruit_io.adafruit_io import RESTClient, AdafruitIO_RequestError
+from adafruit_io.adafruit_io import IO_HTTP, AdafruitIO_RequestError
 
 try:
     from secrets import secrets
@@ -691,7 +691,7 @@ class PyPortal:
             raise KeyError("Adafruit IO secrets are kept in secrets.py, please add them there!\n\n")
 
         wifi = adafruit_esp32spi_wifimanager.ESPSPI_WiFiManager(self._esp, secrets, None)
-        io_client = RESTClient(aio_username, aio_key, wifi)
+        io_client = IO_HTTP(aio_username, aio_key, wifi)
 
         while True:
             try:
