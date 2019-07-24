@@ -51,15 +51,10 @@ import busio
 from digitalio import DigitalInOut
 import pulseio
 import neopixel
-try:
-    import adafruit_touchscreen
-except ImportError:
-    pass
-try:
-    from adafruit_cursorcontrol.cursorcontrol import Cursor
-    from adafruit_cursorcontrol.cursorcontrol_cursormanager import CursorManager
-except ImportError:
-    pass
+
+import adafruit_touchscreen
+from adafruit_cursorcontrol.cursorcontrol import Cursor
+from adafruit_cursorcontrol.cursorcontrol_cursormanager import CursorManager
 
 from adafruit_esp32spi import adafruit_esp32spi, adafruit_esp32spi_wifimanager
 import adafruit_esp32spi.adafruit_esp32spi_requests as requests
@@ -171,11 +166,11 @@ class PyPortal:
 
         self._debug = debug
 
-        try:
-            self._backlight = pulseio.PWMOut(board.TFT_LITE)  # pylint: disable=no-member
-        except AttributeError:
+        if hasattr(board, 'TFT_BACKLIGHT'):
             self._backlight = pulseio.PWMOut(board.TFT_BACKLIGHT)  # pylint: disable=no-member
-        except ValueError:
+        elif hasattr(board, 'TFT_LITE'):
+            self._backlight = pulseio.PWMOut(board.TFT_LITE)  # pylint: disable=no-member
+        else:
             self._backlight = None
         self.set_backlight(1.0)  # turn on backlight
 
@@ -234,10 +229,12 @@ class PyPortal:
 
         self._speaker_enable = DigitalInOut(board.SPEAKER_ENABLE)
         self._speaker_enable.switch_to_output(False)
-        try: # PyPortal
+        if hasattr(board, 'AUDIO_OUT'):
             self.audio = audioio.AudioOut(board.AUDIO_OUT)
-        except AttributeError: # PyGamer/PyBadge
+        elif hasattr(board, 'SPEAKER'):
             self.audio = audioio.AudioOut(board.SPEAKER)
+        else:
+            raise AttributeError('Board does not have a builtin speaker!')
         try:
             self.play_file("pyportal_startup.wav")
         except OSError:
