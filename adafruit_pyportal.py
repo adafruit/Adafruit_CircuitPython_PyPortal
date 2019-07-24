@@ -50,11 +50,15 @@ import board
 import busio
 from digitalio import DigitalInOut
 import pulseio
-import adafruit_touchscreen
 import neopixel
 
 from adafruit_esp32spi import adafruit_esp32spi, adafruit_esp32spi_wifimanager
 import adafruit_esp32spi.adafruit_esp32spi_requests as requests
+
+import adafruit_touchscreen
+from adafruit_cursorcontrol.cursorcontrol import Cursor
+from adafruit_cursorcontrol.cursorcontrol_cursormanager import CursorManager
+
 try:
     from adafruit_display_text.text_area import TextArea  # pylint: disable=unused-import
     print("*** WARNING ***\nPlease update your library bundle to the latest 'adafruit_display_text' version as we've deprecated 'text_area' in favor of 'label'")  # pylint: disable=line-too-long
@@ -163,9 +167,11 @@ class PyPortal:
 
         self._debug = debug
 
-        try:
+        if hasattr(board, 'TFT_BACKLIGHT'):
             self._backlight = pulseio.PWMOut(board.TFT_BACKLIGHT)  # pylint: disable=no-member
-        except ValueError:
+        elif hasattr(board, 'TFT_LITE'):
+            self._backlight = pulseio.PWMOut(board.TFT_LITE)  # pylint: disable=no-member
+        else:
             self._backlight = None
         self.set_backlight(1.0)  # turn on backlight
 
@@ -224,7 +230,12 @@ class PyPortal:
 
         self._speaker_enable = DigitalInOut(board.SPEAKER_ENABLE)
         self._speaker_enable.switch_to_output(False)
-        self.audio = audioio.AudioOut(board.AUDIO_OUT)
+        if hasattr(board, 'AUDIO_OUT'):
+            self.audio = audioio.AudioOut(board.AUDIO_OUT)
+        elif hasattr(board, 'SPEAKER'):
+            self.audio = audioio.AudioOut(board.SPEAKER)
+        else:
+            raise AttributeError('Board does not have a builtin speaker!')
         try:
             self.play_file("pyportal_startup.wav")
         except OSError:
@@ -347,18 +358,26 @@ class PyPortal:
                 self._image_position = (0, 0)  # default to top corner
             if not self._image_resize:
                 self._image_resize = (320, 240)  # default to full screen
+        if hasattr(board, 'TOUCH_XL'):
+            if self._debug:
+                print("Init touchscreen")
+            # pylint: disable=no-member
+            self.touchscreen = adafruit_touchscreen.Touchscreen(board.TOUCH_XL, board.TOUCH_XR,
+                                                                board.TOUCH_YD, board.TOUCH_YU,
+                                                                calibration=((5200, 59000),
+                                                                             (5800, 57000)),
+                                                                size=(320, 240))
+            # pylint: enable=no-member
 
-        if self._debug:
-            print("Init touchscreen")
-        # pylint: disable=no-member
-        self.touchscreen = adafruit_touchscreen.Touchscreen(board.TOUCH_XL, board.TOUCH_XR,
-                                                            board.TOUCH_YD, board.TOUCH_YU,
-                                                            calibration=((5200, 59000),
-                                                                         (5800, 57000)),
-                                                            size=(320, 240))
-        # pylint: enable=no-member
-
-        self.set_backlight(1.0)  # turn on backlight
+            self.set_backlight(1.0)  # turn on backlight
+        elif hasattr(board, 'BUTTON_CLOCK'):
+            if self._debug:
+                print("Init cursor")
+            self.mouse_cursor = Cursor(board.DISPLAY, display_group=self.splash, cursor_speed=8)
+            self.mouse_cursor.hide()
+            self.cursor = CursorManager(self.mouse_cursor)
+        else:
+            raise AttributeError('PyPortal module requires either a touchscreen or gamepad.')
 
         gc.collect()
 
