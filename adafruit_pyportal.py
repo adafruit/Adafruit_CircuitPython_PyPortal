@@ -52,12 +52,13 @@ from digitalio import DigitalInOut
 import pulseio
 import neopixel
 
+from adafruit_esp32spi import adafruit_esp32spi, adafruit_esp32spi_wifimanager
+import adafruit_esp32spi.adafruit_esp32spi_requests as requests
+
 import adafruit_touchscreen
 from adafruit_cursorcontrol.cursorcontrol import Cursor
 from adafruit_cursorcontrol.cursorcontrol_cursormanager import CursorManager
 
-from adafruit_esp32spi import adafruit_esp32spi, adafruit_esp32spi_wifimanager
-import adafruit_esp32spi.adafruit_esp32spi_requests as requests
 try:
     from adafruit_display_text.text_area import TextArea  # pylint: disable=unused-import
     print("*** WARNING ***\nPlease update your library bundle to the latest 'adafruit_display_text' version as we've deprecated 'text_area' in favor of 'label'")  # pylint: disable=line-too-long
