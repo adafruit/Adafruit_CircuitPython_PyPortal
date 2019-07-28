@@ -51,6 +51,16 @@ import busio
 from digitalio import DigitalInOut
 import pulseio
 import neopixel
+from adafruit_bitmap_font import bitmap_font
+
+import storage
+import adafruit_sdcard
+import displayio
+import audioio
+import rtc
+import supervisor
+
+from adafruit_io.adafruit_io import IO_HTTP, AdafruitIO_RequestError
 
 from adafruit_esp32spi import adafruit_esp32spi, adafruit_esp32spi_wifimanager
 import adafruit_esp32spi.adafruit_esp32spi_requests as requests
@@ -66,16 +76,6 @@ try:
     print("*** WARNING ***\nPlease update your library bundle to the latest 'adafruit_display_text' version as we've deprecated 'text_area' in favor of 'label'")  # pylint: disable=line-too-long
 except ImportError:
     from adafruit_display_text.Label import Label
-from adafruit_bitmap_font import bitmap_font
-
-import storage
-import adafruit_sdcard
-import displayio
-import audioio
-import rtc
-import supervisor
-
-from adafruit_io.adafruit_io import IO_HTTP, AdafruitIO_RequestError
 
 try:
     from secrets import secrets
