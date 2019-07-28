@@ -55,9 +55,11 @@ import neopixel
 from adafruit_esp32spi import adafruit_esp32spi, adafruit_esp32spi_wifimanager
 import adafruit_esp32spi.adafruit_esp32spi_requests as requests
 
-import adafruit_touchscreen
-from adafruit_cursorcontrol.cursorcontrol import Cursor
-from adafruit_cursorcontrol.cursorcontrol_cursormanager import CursorManager
+if hasattr(board, 'TOUCH_XL'):
+    import adafruit_touchscreen
+elif hasattr(board, 'BUTTON_CLOCK'):
+    from adafruit_cursorcontrol.cursorcontrol import Cursor
+    from adafruit_cursorcontrol.cursorcontrol_cursormanager import CursorManager
 
 try:
     from adafruit_display_text.text_area import TextArea  # pylint: disable=unused-import
