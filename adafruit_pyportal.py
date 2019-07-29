@@ -51,29 +51,30 @@ import busio
 from digitalio import DigitalInOut
 import pulseio
 import neopixel
-
 from adafruit_esp32spi import adafruit_esp32spi, adafruit_esp32spi_wifimanager
 import adafruit_esp32spi.adafruit_esp32spi_requests as requests
+import storage
+import displayio
+import audioio
+import rtc
+import supervisor
+from adafruit_bitmap_font import bitmap_font
+from adafruit_io.adafruit_io import IO_HTTP, AdafruitIO_RequestError
+import adafruit_sdcard
 
-import adafruit_touchscreen
-from adafruit_cursorcontrol.cursorcontrol import Cursor
-from adafruit_cursorcontrol.cursorcontrol_cursormanager import CursorManager
+
+
+if hasattr(board, 'TOUCH_XL'):
+    import adafruit_touchscreen
+elif hasattr(board, 'BUTTON_CLOCK'):
+    from adafruit_cursorcontrol.cursorcontrol import Cursor
+    from adafruit_cursorcontrol.cursorcontrol_cursormanager import CursorManager
 
 try:
     from adafruit_display_text.text_area import TextArea  # pylint: disable=unused-import
     print("*** WARNING ***\nPlease update your library bundle to the latest 'adafruit_display_text' version as we've deprecated 'text_area' in favor of 'label'")  # pylint: disable=line-too-long
 except ImportError:
     from adafruit_display_text.Label import Label
-from adafruit_bitmap_font import bitmap_font
-
-import storage
-import adafruit_sdcard
-import displayio
-import audioio
-import rtc
-import supervisor
-
-from adafruit_io.adafruit_io import IO_HTTP, AdafruitIO_RequestError
 
 try:
     from secrets import secrets
