@@ -168,11 +168,12 @@ class PyPortal:
 
         self._debug = debug
 
-        if hasattr(board, 'TFT_BACKLIGHT'):
-            self._backlight = pulseio.PWMOut(board.TFT_BACKLIGHT)  # pylint: disable=no-member
-        elif hasattr(board, 'TFT_LITE'):
-            self._backlight = pulseio.PWMOut(board.TFT_LITE)  # pylint: disable=no-member
-        else:
+        try:
+            if hasattr(board, 'TFT_BACKLIGHT'):
+                self._backlight = pulseio.PWMOut(board.TFT_BACKLIGHT)  # pylint: disable=no-member
+            elif hasattr(board, 'TFT_LITE'):
+                self._backlight = pulseio.PWMOut(board.TFT_LITE)  # pylint: disable=no-member
+        except ValueError:
             self._backlight = None
         self.set_backlight(1.0)  # turn on backlight
 
