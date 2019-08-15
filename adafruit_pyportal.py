@@ -635,7 +635,10 @@ class PyPortal:
 
         if self._debug:
             print(r.headers)
-        content_length = int(r.headers['content-length'])
+        if 'content-length' in r.headers:
+            content_length = int(r.headers['content-length'])
+        else:
+            raise RuntimeError("Invalid Header")
         remaining = content_length
         print("Saving data to ", filename)
         stamp = time.monotonic()
