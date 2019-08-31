@@ -127,7 +127,7 @@ class PyPortal:
                       ``False``, no wrapping.
     :param text_maxlen: The max length of the text for text wrapping. Defaults to 0.
     :param text_transform: A function that will be called on the text before display
-    :param json_transforms: A function or a list of functions to call with the parsed JSON.
+    :param json_transform: A function or a list of functions to call with the parsed JSON.
                            Changes and additions are permitted for the ``dict`` object.
     :param image_json_path: The JSON traversal path for a background image to display. Defaults to
                             ``None``.
@@ -156,7 +156,7 @@ class PyPortal:
                  default_bg=0x000000, status_neopixel=None,
                  text_font=None, text_position=None, text_color=0x808080,
                  text_wrap=False, text_maxlen=0, text_transform=None,
-                 json_transforms=None, image_json_path=None,
+                 json_transform=None, image_json_path=None,
                  image_resize=None, image_position=None,
                  caption_text=None, caption_font=None, caption_position=None,
                  caption_color=0x808080, image_url_path=None,
@@ -335,12 +335,12 @@ class PyPortal:
             self._text = None
 
         # Add any JSON translators
-        self._json_transforms = []
-        if json_transforms:
-            if callable(json_transforms):
-                self._json_transforms.append(json_transforms)
+        self._json_transform = []
+        if json_transform:
+            if callable(json_transform):
+                self._json_transform.append(json_transform)
             else:
-                self._json_transforms.extend(filter(callable, json_transforms))
+                self._json_transform.extend(filter(callable, json_transform))
 
         self._image_json_path = image_json_path
         self._image_url_path = image_url_path
@@ -726,7 +726,7 @@ class PyPortal:
 
         # optional JSON post processing, apply any transformations
         # these MAY change/add element
-        for idx, json_transform in enumerate(self._json_transforms):
+        for idx, json_transform in enumerate(self._json_transform):
             try:
                 json_transform(json_out)
             except Exception as error:
