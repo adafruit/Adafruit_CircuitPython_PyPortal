@@ -50,24 +50,32 @@ import board
 import busio
 from digitalio import DigitalInOut
 import pulseio
-import adafruit_touchscreen
 import neopixel
+from adafruit_esp32spi import adafruit_esp32spi, adafruit_esp32spi_wifimanager
+import adafruit_esp32spi.adafruit_esp32spi_socket as socket
+import adafruit_requests as requests
+import storage
+import displayio
+import audioio
+import rtc
+import supervisor
+from adafruit_bitmap_font import bitmap_font
+from adafruit_io.adafruit_io import IO_HTTP, AdafruitIO_RequestError
+import adafruit_sdcard
 
-from adafruit_esp32spi import adafruit_esp32spi
-import adafruit_esp32spi.adafruit_esp32spi_requests as requests
+
+
+if hasattr(board, 'TOUCH_XL'):
+    import adafruit_touchscreen
+elif hasattr(board, 'BUTTON_CLOCK'):
+    from adafruit_cursorcontrol.cursorcontrol import Cursor
+    from adafruit_cursorcontrol.cursorcontrol_cursormanager import CursorManager
+
 try:
     from adafruit_display_text.text_area import TextArea  # pylint: disable=unused-import
     print("*** WARNING ***\nPlease update your library bundle to the latest 'adafruit_display_text' version as we've deprecated 'text_area' in favor of 'label'")  # pylint: disable=line-too-long
 except ImportError:
     from adafruit_display_text.Label import Label
-from adafruit_bitmap_font import bitmap_font
-
-import storage
-import adafruit_sdcard
-import displayio
-import audioio
-import rtc
-import supervisor
 
 try:
     from secrets import secrets
@@ -165,7 +173,10 @@ class PyPortal:
         self._debug = debug
 
         try:
-            self._backlight = pulseio.PWMOut(board.TFT_BACKLIGHT)  # pylint: disable=no-member
+            if hasattr(board, 'TFT_BACKLIGHT'):
+                self._backlight = pulseio.PWMOut(board.TFT_BACKLIGHT)  # pylint: disable=no-member
+            elif hasattr(board, 'TFT_LITE'):
+                self._backlight = pulseio.PWMOut(board.TFT_LITE)  # pylint: disable=no-member
         except ValueError:
             self._backlight = None
         self.set_backlight(1.0)  # turn on backlight
@@ -225,7 +236,12 @@ class PyPortal:
 
         self._speaker_enable = DigitalInOut(board.SPEAKER_ENABLE)
         self._speaker_enable.switch_to_output(False)
-        self.audio = audioio.AudioOut(board.AUDIO_OUT)
+        if hasattr(board, 'AUDIO_OUT'):
+            self.audio = audioio.AudioOut(board.AUDIO_OUT)
+        elif hasattr(board, 'SPEAKER'):
+            self.audio = audioio.AudioOut(board.SPEAKER)
+        else:
+            raise AttributeError('Board does not have a builtin speaker!')
         try:
             self.play_file("pyportal_startup.wav")
         except OSError:
@@ -261,10 +277,13 @@ class PyPortal:
                 self._esp.reset()
         else:
             raise RuntimeError("Was not able to find ESP32")
-        requests.set_interface(self._esp)
+        requests.set_socket(socket, self._esp)
 
         if url and not self._uselocal:
             self._connect_esp()
+
+        if self._debug:
+            print("My IP address is", self._esp.pretty_ip(self._esp.ip_address))
 
         # set the default background
         self.set_background(self._default_bg)
@@ -353,20 +372,35 @@ class PyPortal:
                 self._image_position = (0, 0)  # default to top corner
             if not self._image_resize:
                 self._image_resize = (320, 240)  # default to full screen
+        if hasattr(board, 'TOUCH_XL'):
+            if self._debug:
+                print("Init touchscreen")
+            # pylint: disable=no-member
+            self.touchscreen = adafruit_touchscreen.Touchscreen(board.TOUCH_XL, board.TOUCH_XR,
+                                                                board.TOUCH_YD, board.TOUCH_YU,
+                                                                calibration=((5200, 59000),
+                                                                             (5800, 57000)),
+                                                                size=(320, 240))
+            # pylint: enable=no-member
 
-        if self._debug:
-            print("Init touchscreen")
-        # pylint: disable=no-member
-        self.touchscreen = adafruit_touchscreen.Touchscreen(board.TOUCH_XL, board.TOUCH_XR,
-                                                            board.TOUCH_YD, board.TOUCH_YU,
-                                                            calibration=((5200, 59000),
-                                                                         (5800, 57000)),
-                                                            size=(320, 240))
-        # pylint: enable=no-member
-
-        self.set_backlight(1.0)  # turn on backlight
+            self.set_backlight(1.0)  # turn on backlight
+        elif hasattr(board, 'BUTTON_CLOCK'):
+            if self._debug:
+                print("Init cursor")
+            self.mouse_cursor = Cursor(board.DISPLAY, display_group=self.splash, cursor_speed=8)
+            self.mouse_cursor.hide()
+            self.cursor = CursorManager(self.mouse_cursor)
+        else:
+            raise AttributeError('PyPortal module requires either a touchscreen or gamepad.')
 
         gc.collect()
+
+    def set_headers(self, headers):
+        """Set the headers used by fetch().
+
+        :param headers: The new header dictionary
+        """
+        self._headers = headers
 
     def set_background(self, file_or_color, position=None):
         """The background image to a bitmap file.
@@ -672,6 +706,47 @@ class PyPortal:
         return IMAGE_CONVERTER_SERVICE % (aio_username, aio_key,
                                           width, height,
                                           color_depth, image_url)
+
+    def push_to_io(self, feed_key, data):
+        # pylint: disable=line-too-long
+        """Push data to an adafruit.io feed
+
+        :param str feed_key: Name of feed key to push data to.
+        :param data: data to send to feed
+
+        """
+        # pylint: enable=line-too-long
+
+        try:
+            aio_username = secrets['aio_username']
+            aio_key = secrets['aio_key']
+        except KeyError:
+            raise KeyError("Adafruit IO secrets are kept in secrets.py, please add them there!\n\n")
+
+        wifi = adafruit_esp32spi_wifimanager.ESPSPI_WiFiManager(self._esp, secrets, None)
+        io_client = IO_HTTP(aio_username, aio_key, wifi)
+
+        while True:
+            try:
+                feed_id = io_client.get_feed(feed_key)
+            except AdafruitIO_RequestError:
+                # If no feed exists, create one
+                feed_id = io_client.create_new_feed(feed_key)
+            except RuntimeError as exception:
+                print("An error occured, retrying! 1 -", exception)
+                continue
+            break
+
+        while True:
+            try:
+                io_client.send_data(feed_id['key'], data)
+            except RuntimeError as exception:
+                print("An error occured, retrying! 2 -", exception)
+                continue
+            except NameError as exception:
+                print(feed_id['key'], data, exception)
+                continue
+            break
 
     def fetch(self, refresh_url=None):
         """Fetch data from the url we initialized with, perfom any parsing,
