@@ -550,7 +550,6 @@ class PyPortal:
         :param str file_name: The name of the wav file to play on the speaker.
 
         """
-        board.DISPLAY.wait_for_frame()
         wavfile = open(file_name, "rb")
         wavedata = audioio.WaveFile(wavfile)
         self._speaker_enable.value = True
