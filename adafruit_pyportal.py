@@ -226,7 +226,10 @@ class PyPortal:
                     self.set_backlight(i/100)
                     time.sleep(0.005)
                 self.set_background(bootscreen)
-                board.DISPLAY.wait_for_frame()
+                try:
+                    board.DISPLAY.refresh(target_frames_per_second=60)
+                except AttributeError:
+                    board.DISPLAY.wait_for_frame()
                 for i in range(100):  # dim up
                     self.set_backlight(i/100)
                     time.sleep(0.005)
@@ -446,9 +449,13 @@ class PyPortal:
         else:
             raise RuntimeError("Unknown type of background")
         self._bg_group.append(self._bg_sprite)
-        board.DISPLAY.refresh_soon()
-        gc.collect()
-        board.DISPLAY.wait_for_frame()
+        try:
+            board.DISPLAY.refresh(target_frames_per_second=60)
+            gc.collect()
+        except AttributeError:
+            board.DISPLAY.refresh_soon()
+            gc.collect()
+            board.DISPLAY.wait_for_frame()
 
     def set_backlight(self, val):
         """Adjust the TFT backlight.
@@ -498,8 +505,11 @@ class PyPortal:
 
         if self._caption:
             self._caption._update_text(str(caption_text))  # pylint: disable=protected-access
-            board.DISPLAY.refresh_soon()
-            board.DISPLAY.wait_for_frame()
+            try:
+                board.DISPLAY.refresh(target_frames_per_second=60)
+            except AttributeError:
+                board.DISPLAY.refresh_soon()
+                board.DISPLAY.wait_for_frame()
             return
 
         self._caption = Label(self._caption_font, text=str(caption_text))
