@@ -685,7 +685,7 @@ class PyPortal:
         while not self._esp.is_connected:
             # secrets dictionary must contain 'ssid' and 'password' at a minimum
             print("Connecting to AP", secrets['ssid'])
-            if secrets['ssid'] == 'CHANGE ME' or secrets['ssid'] == 'CHANGE ME':
+            if secrets['ssid'] == 'CHANGE ME' or secrets['password'] == 'CHANGE ME':
                 change_me = "\n"+"*"*45
                 change_me += "\nPlease update the 'secrets.py' file on your\n"
                 change_me += "CIRCUITPY drive to include your local WiFi\n"
