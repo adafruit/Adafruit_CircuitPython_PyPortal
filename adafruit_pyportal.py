@@ -846,7 +846,7 @@ class PyPortal:
         if self._image_dim_json_path:
             iwidth = int(PyPortal._json_traverse(json_out, self._image_dim_json_path[0]))
             iheight = int(PyPortal._json_traverse(json_out, self._image_dim_json_path[1]))
-            print("image dim:",iwidth,iheight)
+            print("image dim:", iwidth, iheight)
 
         # we're done with the requests object, lets delete it so we can do more!
         json_out = None
@@ -858,7 +858,7 @@ class PyPortal:
                 print("original URL:", image_url)
                 if iwidth < iheight:
                     image_url = self.image_converter_url(image_url,
-                                                         int( self._image_resize[1] * self._image_resize[1]
+                                                         int(self._image_resize[1] * self._image_resize[1]
                                                              / self._image_resize[0]),
                                                          self._image_resize[1])
                 else:
@@ -882,7 +882,7 @@ class PyPortal:
                     print(error)
                     raise RuntimeError("wget didn't write a complete file")
                 if iwidth < iheight:
-                    pwidth = int( self._image_resize[1] * self._image_resize[1] / self._image_resize[0])
+                    pwidth = int(self._image_resize[1] * self._image_resize[1] / self._image_resize[0])
                     self.set_background(filename, (self._image_position[0] + int((self._image_resize[0] - pwidth) / 2),
                                         self._image_position[1]))
                 else:
