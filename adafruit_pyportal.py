@@ -88,6 +88,7 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PyPortal.git"
 
 # pylint: disable=line-too-long
+# pylint: disable=too-many-lines
 # you'll need to pass in an io username, width, height, format (bit depth), io key, and then url!
 IMAGE_CONVERTER_SERVICE = "https://io.adafruit.com/api/v2/%s/integrations/image-formatter?x-aio-key=%s&width=%d&height=%d&output=BMP%d&url=%s"
 # you'll need to pass in an io username and key
