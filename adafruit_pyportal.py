@@ -858,7 +858,7 @@ class PyPortal:
                 print("original URL:", image_url)
                 if iwidth < iheight:
                     image_url = self.image_converter_url(image_url,
-                                                         int(self._image_resize[1] 
+                                                         int(self._image_resize[1]
                                                              * self._image_resize[1]
                                                              / self._image_resize[0]),
                                                          self._image_resize[1])
@@ -883,13 +883,13 @@ class PyPortal:
                     print(error)
                     raise RuntimeError("wget didn't write a complete file")
                 if iwidth < iheight:
-                    pwidth = int(self._image_resize[1] * 
+                    pwidth = int(self._image_resize[1] *
                                  self._image_resize[1] / self._image_resize[0])
                     self.set_background(filename,
-                                        (self._image_position[0] 
-                                         + int((self._image_resize[0] 
+                                        (self._image_position[0]
+                                         + int((self._image_resize[0]
                                                 - pwidth) / 2),
-                                        self._image_position[1]))
+                                         self._image_position[1]))
                 else:
                     self.set_background(filename, self._image_position)
 
