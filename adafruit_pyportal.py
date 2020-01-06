@@ -143,6 +143,8 @@ class PyPortal:
                          of the width and height you want. Defaults to ``None``.
     :param image_position: The position of the image on the display as an (x, y) tuple. Defaults to
                            ``None``.
+    :param image_dim_json_path: The JSON traversal path for the original dimensions of image tuple.
+                                Used with fetch(). Defaults to ``None``.
     :param success_callback: A function we'll call if you like, when we fetch data successfully.
                              Defaults to ``None``.
     :param str caption_text: The text of your caption, a fixed text not changed by the data we get.
@@ -165,7 +167,7 @@ class PyPortal:
                  text_font=None, text_position=None, text_color=0x808080,
                  text_wrap=False, text_maxlen=0, text_transform=None,
                  json_transform=None, image_json_path=None,
-                 image_resize=None, image_position=None,
+                 image_resize=None, image_position=None, image_dim_json_path=None,
                  caption_text=None, caption_font=None, caption_position=None,
                  caption_color=0x808080, image_url_path=None,
                  success_callback=None, esp=None, external_spi=None, debug=False):
@@ -368,6 +370,7 @@ class PyPortal:
         self._image_url_path = image_url_path
         self._image_resize = image_resize
         self._image_position = image_position
+        self._image_dim_json_path = image_dim_json_path
         if image_json_path or image_url_path:
             if self._debug:
                 print("Init image path")
@@ -838,6 +841,13 @@ class PyPortal:
                 print("Error finding image data. '" + error.args[0] + "' not found.")
                 self.set_background(self._default_bg)
 
+        iwidth = 0
+        iheight = 0
+        if self._image_dim_json_path:
+            iwidth = int(PyPortal._json_traverse(json_out, self._image_dim_json_path[0]))
+            iheight = int(PyPortal._json_traverse(json_out, self._image_dim_json_path[1]))
+            print("image dim:",iwidth,iheight)
+
         # we're done with the requests object, lets delete it so we can do more!
         json_out = None
         r = None
@@ -846,9 +856,15 @@ class PyPortal:
         if image_url:
             try:
                 print("original URL:", image_url)
-                image_url = self.image_converter_url(image_url,
-                                                     self._image_resize[0],
-                                                     self._image_resize[1])
+                if iwidth < iheight:
+                    image_url = self.image_converter_url(image_url,
+                                                         int( self._image_resize[1] * self._image_resize[1]
+                                                             / self._image_resize[0]),
+                                                         self._image_resize[1])
+                else:
+                    image_url = self.image_converter_url(image_url,
+                                                         self._image_resize[0],
+                                                         self._image_resize[1])
                 print("convert URL:", image_url)
                 # convert image to bitmap and cache
                 #print("**not actually wgetting**")
@@ -865,7 +881,13 @@ class PyPortal:
                 except RuntimeError as error:
                     print(error)
                     raise RuntimeError("wget didn't write a complete file")
-                self.set_background(filename, self._image_position)
+                if iwidth < iheight:
+                    pwidth = int( self._image_resize[1] * self._image_resize[1] / self._image_resize[0])
+                    self.set_background(filename, (self._image_position[0] + int((self._image_resize[0] - pwidth) / 2),
+                                        self._image_position[1]))
+                else:
+                    self.set_background(filename, self._image_position)
+
             except ValueError as error:
                 print("Error displaying cached image. " + error.args[0])
                 self.set_background(self._default_bg)
