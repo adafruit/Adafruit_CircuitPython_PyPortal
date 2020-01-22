@@ -88,6 +88,7 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PyPortal.git"
 
 # pylint: disable=line-too-long
+# pylint: disable=too-many-lines
 # you'll need to pass in an io username, width, height, format (bit depth), io key, and then url!
 IMAGE_CONVERTER_SERVICE = "https://io.adafruit.com/api/v2/%s/integrations/image-formatter?x-aio-key=%s&width=%d&height=%d&output=BMP%d&url=%s"
 # you'll need to pass in an io username and key
@@ -143,6 +144,8 @@ class PyPortal:
                          of the width and height you want. Defaults to ``None``.
     :param image_position: The position of the image on the display as an (x, y) tuple. Defaults to
                            ``None``.
+    :param image_dim_json_path: The JSON traversal path for the original dimensions of image tuple.
+                                Used with fetch(). Defaults to ``None``.
     :param success_callback: A function we'll call if you like, when we fetch data successfully.
                              Defaults to ``None``.
     :param str caption_text: The text of your caption, a fixed text not changed by the data we get.
@@ -165,7 +168,7 @@ class PyPortal:
                  text_font=None, text_position=None, text_color=0x808080,
                  text_wrap=False, text_maxlen=0, text_transform=None,
                  json_transform=None, image_json_path=None,
-                 image_resize=None, image_position=None,
+                 image_resize=None, image_position=None, image_dim_json_path=None,
                  caption_text=None, caption_font=None, caption_position=None,
                  caption_color=0x808080, image_url_path=None,
                  success_callback=None, esp=None, external_spi=None, debug=False):
@@ -226,7 +229,10 @@ class PyPortal:
                     self.set_backlight(i/100)
                     time.sleep(0.005)
                 self.set_background(bootscreen)
-                board.DISPLAY.wait_for_frame()
+                try:
+                    board.DISPLAY.refresh(target_frames_per_second=60)
+                except AttributeError:
+                    board.DISPLAY.wait_for_frame()
                 for i in range(100):  # dim up
                     self.set_backlight(i/100)
                     time.sleep(0.005)
@@ -365,6 +371,7 @@ class PyPortal:
         self._image_url_path = image_url_path
         self._image_resize = image_resize
         self._image_position = image_position
+        self._image_dim_json_path = image_dim_json_path
         if image_json_path or image_url_path:
             if self._debug:
                 print("Init image path")
@@ -446,9 +453,13 @@ class PyPortal:
         else:
             raise RuntimeError("Unknown type of background")
         self._bg_group.append(self._bg_sprite)
-        board.DISPLAY.refresh_soon()
-        gc.collect()
-        board.DISPLAY.wait_for_frame()
+        try:
+            board.DISPLAY.refresh(target_frames_per_second=60)
+            gc.collect()
+        except AttributeError:
+            board.DISPLAY.refresh_soon()
+            gc.collect()
+            board.DISPLAY.wait_for_frame()
 
     def set_backlight(self, val):
         """Adjust the TFT backlight.
@@ -498,8 +509,11 @@ class PyPortal:
 
         if self._caption:
             self._caption._update_text(str(caption_text))  # pylint: disable=protected-access
-            board.DISPLAY.refresh_soon()
-            board.DISPLAY.wait_for_frame()
+            try:
+                board.DISPLAY.refresh(target_frames_per_second=60)
+            except AttributeError:
+                board.DISPLAY.refresh_soon()
+                board.DISPLAY.wait_for_frame()
             return
 
         self._caption = Label(self._caption_font, text=str(caption_text))
@@ -675,7 +689,7 @@ class PyPortal:
         while not self._esp.is_connected:
             # secrets dictionary must contain 'ssid' and 'password' at a minimum
             print("Connecting to AP", secrets['ssid'])
-            if secrets['ssid'] == 'CHANGE ME' or secrets['ssid'] == 'CHANGE ME':
+            if secrets['ssid'] == 'CHANGE ME' or secrets['password'] == 'CHANGE ME':
                 change_me = "\n"+"*"*45
                 change_me += "\nPlease update the 'secrets.py' file on your\n"
                 change_me += "CIRCUITPY drive to include your local WiFi\n"
@@ -828,6 +842,13 @@ class PyPortal:
                 print("Error finding image data. '" + error.args[0] + "' not found.")
                 self.set_background(self._default_bg)
 
+        iwidth = 0
+        iheight = 0
+        if self._image_dim_json_path:
+            iwidth = int(PyPortal._json_traverse(json_out, self._image_dim_json_path[0]))
+            iheight = int(PyPortal._json_traverse(json_out, self._image_dim_json_path[1]))
+            print("image dim:", iwidth, iheight)
+
         # we're done with the requests object, lets delete it so we can do more!
         json_out = None
         r = None
@@ -836,9 +857,16 @@ class PyPortal:
         if image_url:
             try:
                 print("original URL:", image_url)
-                image_url = self.image_converter_url(image_url,
-                                                     self._image_resize[0],
-                                                     self._image_resize[1])
+                if iwidth < iheight:
+                    image_url = self.image_converter_url(image_url,
+                                                         int(self._image_resize[1]
+                                                             * self._image_resize[1]
+                                                             / self._image_resize[0]),
+                                                         self._image_resize[1])
+                else:
+                    image_url = self.image_converter_url(image_url,
+                                                         self._image_resize[0],
+                                                         self._image_resize[1])
                 print("convert URL:", image_url)
                 # convert image to bitmap and cache
                 #print("**not actually wgetting**")
@@ -855,7 +883,17 @@ class PyPortal:
                 except RuntimeError as error:
                     print(error)
                     raise RuntimeError("wget didn't write a complete file")
-                self.set_background(filename, self._image_position)
+                if iwidth < iheight:
+                    pwidth = int(self._image_resize[1] *
+                                 self._image_resize[1] / self._image_resize[0])
+                    self.set_background(filename,
+                                        (self._image_position[0]
+                                         + int((self._image_resize[0]
+                                                - pwidth) / 2),
+                                         self._image_position[1]))
+                else:
+                    self.set_background(filename, self._image_position)
+
             except ValueError as error:
                 print("Error displaying cached image. " + error.args[0])
                 self.set_background(self._default_bg)
