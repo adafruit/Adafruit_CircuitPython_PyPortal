@@ -620,6 +620,8 @@ class PyPortal:
         api_url += TIME_SERVICE_STRFTIME
         try:
             response = requests.get(api_url)
+            if response.status_code != 200:
+                raise ValueError(response.text)
             if self._debug:
                 print("Time request: ", api_url)
                 print("Time reply: ", response.text)
