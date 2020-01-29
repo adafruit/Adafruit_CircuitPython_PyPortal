@@ -378,7 +378,8 @@ class PyPortal:
             if not self._image_position:
                 self._image_position = (0, 0)  # default to top corner
             if not self._image_resize:
-                self._image_resize = (320, 240)  # default to full screen
+                self._image_resize = (board.DISPLAY.width,
+                                      board.DISPLAY.height)  # default to full screen
         if hasattr(board, 'TOUCH_XL'):
             if self._debug:
                 print("Init touchscreen")
@@ -387,7 +388,8 @@ class PyPortal:
                                                                 board.TOUCH_YD, board.TOUCH_YU,
                                                                 calibration=((5200, 59000),
                                                                              (5800, 57000)),
-                                                                size=(320, 240))
+                                                                size=(board.DISPLAY.width,
+                                                                      board.DISPLAY.height))
             # pylint: enable=no-member
 
             self.set_backlight(1.0)  # turn on backlight
@@ -439,7 +441,7 @@ class PyPortal:
                                                      x=position[0], y=position[1])
         elif isinstance(file_or_color, int):
             # Make a background color fill
-            color_bitmap = displayio.Bitmap(320, 240, 1)
+            color_bitmap = displayio.Bitmap(board.DISPLAY.width, board.DISPLAY.height, 1)
             color_palette = displayio.Palette(1)
             color_palette[0] = file_or_color
             try:
