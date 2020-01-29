@@ -378,7 +378,8 @@ class PyPortal:
             if not self._image_position:
                 self._image_position = (0, 0)  # default to top corner
             if not self._image_resize:
-                self._image_resize = (board.DISPLAY.width, board.DISPLAY.height)  # default to full screen
+                self._image_resize = (board.DISPLAY.width,
+                                      board.DISPLAY.height)  # default to full screen
         if hasattr(board, 'TOUCH_XL'):
             if self._debug:
                 print("Init touchscreen")
@@ -387,7 +388,8 @@ class PyPortal:
                                                                 board.TOUCH_YD, board.TOUCH_YU,
                                                                 calibration=((5200, 59000),
                                                                              (5800, 57000)),
-                                                                size=(board.DISPLAY.width, board.DISPLAY.height))
+                                                                size=(board.DISPLAY.width,
+                                                                      board.DISPLAY.height))
             # pylint: enable=no-member
 
             self.set_backlight(1.0)  # turn on backlight
