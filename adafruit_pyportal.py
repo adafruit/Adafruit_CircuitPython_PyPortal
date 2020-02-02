@@ -873,7 +873,7 @@ class PyPortal:
                 # convert image to bitmap and cache
                 #print("**not actually wgetting**")
                 filename = "/cache.bmp"
-                chunk_size = 12000      # default chunk size is 12K (for QSPI)
+                chunk_size = 4096      # default chunk size is 12K (for QSPI)
                 if self._sdcard:
                     filename = "/sd" + filename
                     chunk_size = 512  # current bug in big SD writes -> stick to 1 block
