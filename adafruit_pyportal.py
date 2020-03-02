@@ -621,7 +621,7 @@ class PyPortal:
             api_url = TIME_SERVICE % (aio_username, aio_key)
         api_url += TIME_SERVICE_STRFTIME
         try:
-            response = requests.get(api_url)
+            response = requests.get(api_url, timeout=10)
             if response.status_code != 200:
                 raise ValueError(response.text)
             if self._debug:
@@ -798,7 +798,7 @@ class PyPortal:
             print("Retrieving data...", end='')
             self.neo_status((100, 100, 0))   # yellow = fetching data
             gc.collect()
-            r = requests.get(self._url, headers=self._headers)
+            r = requests.get(self._url, headers=self._headers, timeout=10)
             gc.collect()
             self.neo_status((0, 0, 100))   # green = got data
             print("Reply is OK!")
