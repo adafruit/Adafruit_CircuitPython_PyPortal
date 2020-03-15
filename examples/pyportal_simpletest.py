@@ -17,6 +17,6 @@ print("Fetching text from", TEXT_URL)
 data = pyportal.fetch()
 
 # Print out what we got
-print('-'*40)
+print("-" * 40)
 print(data)
-print('-'*40)
+print("-" * 40)
