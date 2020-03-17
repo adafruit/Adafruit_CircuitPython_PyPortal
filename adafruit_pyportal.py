@@ -64,24 +64,30 @@ from adafruit_io.adafruit_io import IO_HTTP, AdafruitIO_RequestError
 import adafruit_sdcard
 
 
-
-if hasattr(board, 'TOUCH_XL'):
+if hasattr(board, "TOUCH_XL"):
     import adafruit_touchscreen
-elif hasattr(board, 'BUTTON_CLOCK'):
+elif hasattr(board, "BUTTON_CLOCK"):
     from adafruit_cursorcontrol.cursorcontrol import Cursor
     from adafruit_cursorcontrol.cursorcontrol_cursormanager import CursorManager
 
 try:
-    from adafruit_display_text.text_area import TextArea  # pylint: disable=unused-import
-    print("*** WARNING ***\nPlease update your library bundle to the latest 'adafruit_display_text' version as we've deprecated 'text_area' in favor of 'label'")  # pylint: disable=line-too-long
+    from adafruit_display_text.text_area import (  # pylint: disable=unused-import
+        TextArea,
+    )
+
+    print(
+        "*** WARNING ***\nPlease update your library bundle to the latest 'adafruit_display_text' version as we've deprecated 'text_area' in favor of 'label'"  # pylint: disable=line-too-long
+    )
 except ImportError:
     from adafruit_display_text.Label import Label
 
 try:
     from secrets import secrets
 except ImportError:
-    print("""WiFi settings are kept in secrets.py, please add them there!
-the secrets dictionary must contain 'ssid' and 'password' at a minimum""")
+    print(
+        """WiFi settings are kept in secrets.py, please add them there!
+the secrets dictionary must contain 'ssid' and 'password' at a minimum"""
+    )
     raise
 
 __version__ = "0.0.0-auto.0"
@@ -92,16 +98,21 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PyPortal.git"
 # you'll need to pass in an io username, width, height, format (bit depth), io key, and then url!
 IMAGE_CONVERTER_SERVICE = "https://io.adafruit.com/api/v2/%s/integrations/image-formatter?x-aio-key=%s&width=%d&height=%d&output=BMP%d&url=%s"
 # you'll need to pass in an io username and key
-TIME_SERVICE = "https://io.adafruit.com/api/v2/%s/integrations/time/strftime?x-aio-key=%s"
+TIME_SERVICE = (
+    "https://io.adafruit.com/api/v2/%s/integrations/time/strftime?x-aio-key=%s"
+)
 # our strftime is %Y-%m-%d %H:%M:%S.%L %j %u %z %Z see http://strftime.net/ for decoding details
 # See https://apidock.com/ruby/DateTime/strftime for full options
-TIME_SERVICE_STRFTIME = '&fmt=%25Y-%25m-%25d+%25H%3A%25M%3A%25S.%25L+%25j+%25u+%25z+%25Z'
+TIME_SERVICE_STRFTIME = (
+    "&fmt=%25Y-%25m-%25d+%25H%3A%25M%3A%25S.%25L+%25j+%25u+%25z+%25Z"
+)
 LOCALFILE = "local.txt"
 # pylint: enable=line-too-long
 
 
 class Fake_Requests:
     """For faking 'requests' using a local file instead of the network."""
+
     def __init__(self, filename):
         self._filename = filename
         with open(filename, "r") as file:
@@ -109,7 +120,8 @@ class Fake_Requests:
 
     def json(self):
         """json parsed version for local requests."""
-        import json
+        import json  # pylint: disable=import-outside-toplevel
+
         return json.loads(self.text)
 
 
@@ -162,24 +174,50 @@ class PyPortal:
     :param debug: Turn on debug print outs. Defaults to False.
 
     """
+
     # pylint: disable=too-many-instance-attributes, too-many-locals, too-many-branches, too-many-statements
-    def __init__(self, *, url=None, headers=None, json_path=None, regexp_path=None,
-                 default_bg=0x000000, status_neopixel=None,
-                 text_font=None, text_position=None, text_color=0x808080,
-                 text_wrap=False, text_maxlen=0, text_transform=None,
-                 json_transform=None, image_json_path=None,
-                 image_resize=None, image_position=None, image_dim_json_path=None,
-                 caption_text=None, caption_font=None, caption_position=None,
-                 caption_color=0x808080, image_url_path=None,
-                 success_callback=None, esp=None, external_spi=None, debug=False):
+    def __init__(
+        self,
+        *,
+        url=None,
+        headers=None,
+        json_path=None,
+        regexp_path=None,
+        default_bg=0x000000,
+        status_neopixel=None,
+        text_font=None,
+        text_position=None,
+        text_color=0x808080,
+        text_wrap=False,
+        text_maxlen=0,
+        text_transform=None,
+        json_transform=None,
+        image_json_path=None,
+        image_resize=None,
+        image_position=None,
+        image_dim_json_path=None,
+        caption_text=None,
+        caption_font=None,
+        caption_position=None,
+        caption_color=0x808080,
+        image_url_path=None,
+        success_callback=None,
+        esp=None,
+        external_spi=None,
+        debug=False
+    ):
 
         self._debug = debug
 
         try:
-            if hasattr(board, 'TFT_BACKLIGHT'):
-                self._backlight = pulseio.PWMOut(board.TFT_BACKLIGHT)  # pylint: disable=no-member
-            elif hasattr(board, 'TFT_LITE'):
-                self._backlight = pulseio.PWMOut(board.TFT_LITE)  # pylint: disable=no-member
+            if hasattr(board, "TFT_BACKLIGHT"):
+                self._backlight = pulseio.PWMOut(
+                    board.TFT_BACKLIGHT
+                )  # pylint: disable=no-member
+            elif hasattr(board, "TFT_LITE"):
+                self._backlight = pulseio.PWMOut(
+                    board.TFT_LITE
+                )  # pylint: disable=no-member
         except ValueError:
             self._backlight = None
         self.set_backlight(1.0)  # turn on backlight
@@ -226,7 +264,7 @@ class PyPortal:
                 os.stat(bootscreen)
                 board.DISPLAY.show(self.splash)
                 for i in range(100, -1, -1):  # dim down
-                    self.set_backlight(i/100)
+                    self.set_backlight(i / 100)
                     time.sleep(0.005)
                 self.set_background(bootscreen)
                 try:
@@ -234,30 +272,30 @@ class PyPortal:
                 except AttributeError:
                     board.DISPLAY.wait_for_frame()
                 for i in range(100):  # dim up
-                    self.set_backlight(i/100)
+                    self.set_backlight(i / 100)
                     time.sleep(0.005)
                 time.sleep(2)
             except OSError:
-                pass # they removed it, skip!
+                pass  # they removed it, skip!
 
         self._speaker_enable = DigitalInOut(board.SPEAKER_ENABLE)
         self._speaker_enable.switch_to_output(False)
-        if hasattr(board, 'AUDIO_OUT'):
+        if hasattr(board, "AUDIO_OUT"):
             self.audio = audioio.AudioOut(board.AUDIO_OUT)
-        elif hasattr(board, 'SPEAKER'):
+        elif hasattr(board, "SPEAKER"):
             self.audio = audioio.AudioOut(board.SPEAKER)
         else:
-            raise AttributeError('Board does not have a builtin speaker!')
+            raise AttributeError("Board does not have a builtin speaker!")
         try:
             self.play_file("pyportal_startup.wav")
         except OSError:
-            pass # they deleted the file, no biggie!
+            pass  # they deleted the file, no biggie!
 
         if esp:  # If there was a passed ESP Object
             if self._debug:
                 print("Passed ESP32 to PyPortal")
             self._esp = esp
-            if external_spi: #If SPI Object Passed
+            if external_spi:  # If SPI Object Passed
                 spi = external_spi
             else:  # Else: Make ESP32 connection
                 spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
@@ -270,10 +308,11 @@ class PyPortal:
             esp32_cs = DigitalInOut(board.ESP_CS)
             spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 
-            self._esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready,
-                                                         esp32_reset, esp32_gpio0)
-        #self._esp._debug = 1
-        for _ in range(3): # retries
+            self._esp = adafruit_esp32spi.ESP_SPIcontrol(
+                spi, esp32_cs, esp32_ready, esp32_reset, esp32_gpio0
+            )
+        # self._esp._debug = 1
+        for _ in range(3):  # retries
             try:
                 print("ESP firmware:", self._esp.firmware_version)
                 break
@@ -378,29 +417,37 @@ class PyPortal:
             if not self._image_position:
                 self._image_position = (0, 0)  # default to top corner
             if not self._image_resize:
-                self._image_resize = (board.DISPLAY.width,
-                                      board.DISPLAY.height)  # default to full screen
-        if hasattr(board, 'TOUCH_XL'):
+                self._image_resize = (
+                    board.DISPLAY.width,
+                    board.DISPLAY.height,
+                )  # default to full screen
+        if hasattr(board, "TOUCH_XL"):
             if self._debug:
                 print("Init touchscreen")
             # pylint: disable=no-member
-            self.touchscreen = adafruit_touchscreen.Touchscreen(board.TOUCH_XL, board.TOUCH_XR,
-                                                                board.TOUCH_YD, board.TOUCH_YU,
-                                                                calibration=((5200, 59000),
-                                                                             (5800, 57000)),
-                                                                size=(board.DISPLAY.width,
-                                                                      board.DISPLAY.height))
+            self.touchscreen = adafruit_touchscreen.Touchscreen(
+                board.TOUCH_XL,
+                board.TOUCH_XR,
+                board.TOUCH_YD,
+                board.TOUCH_YU,
+                calibration=((5200, 59000), (5800, 57000)),
+                size=(board.DISPLAY.width, board.DISPLAY.height),
+            )
             # pylint: enable=no-member
 
             self.set_backlight(1.0)  # turn on backlight
-        elif hasattr(board, 'BUTTON_CLOCK'):
+        elif hasattr(board, "BUTTON_CLOCK"):
             if self._debug:
                 print("Init cursor")
-            self.mouse_cursor = Cursor(board.DISPLAY, display_group=self.splash, cursor_speed=8)
+            self.mouse_cursor = Cursor(
+                board.DISPLAY, display_group=self.splash, cursor_speed=8
+            )
             self.mouse_cursor.hide()
             self.cursor = CursorManager(self.mouse_cursor)
         else:
-            raise AttributeError('PyPortal module requires either a touchscreen or gamepad.')
+            raise AttributeError(
+                "PyPortal module requires either a touchscreen or gamepad."
+            )
 
         gc.collect()
 
@@ -428,30 +475,40 @@ class PyPortal:
             return  # we're done, no background desired
         if self._bg_file:
             self._bg_file.close()
-        if isinstance(file_or_color, str): # its a filenme:
+        if isinstance(file_or_color, str):  # its a filenme:
             self._bg_file = open(file_or_color, "rb")
             background = displayio.OnDiskBitmap(self._bg_file)
             try:
-                self._bg_sprite = displayio.TileGrid(background,
-                                                     pixel_shader=displayio.ColorConverter(),
-                                                     position=position)
+                self._bg_sprite = displayio.TileGrid(
+                    background,
+                    pixel_shader=displayio.ColorConverter(),
+                    position=position,
+                )
             except TypeError:
-                self._bg_sprite = displayio.TileGrid(background,
-                                                     pixel_shader=displayio.ColorConverter(),
-                                                     x=position[0], y=position[1])
+                self._bg_sprite = displayio.TileGrid(
+                    background,
+                    pixel_shader=displayio.ColorConverter(),
+                    x=position[0],
+                    y=position[1],
+                )
         elif isinstance(file_or_color, int):
             # Make a background color fill
-            color_bitmap = displayio.Bitmap(board.DISPLAY.width, board.DISPLAY.height, 1)
+            color_bitmap = displayio.Bitmap(
+                board.DISPLAY.width, board.DISPLAY.height, 1
+            )
             color_palette = displayio.Palette(1)
             color_palette[0] = file_or_color
             try:
-                self._bg_sprite = displayio.TileGrid(color_bitmap,
-                                                     pixel_shader=color_palette,
-                                                     position=(0, 0))
+                self._bg_sprite = displayio.TileGrid(
+                    color_bitmap, pixel_shader=color_palette, position=(0, 0)
+                )
             except TypeError:
-                self._bg_sprite = displayio.TileGrid(color_bitmap,
-                                                     pixel_shader=color_palette,
-                                                     x=position[0], y=position[1])
+                self._bg_sprite = displayio.TileGrid(
+                    color_bitmap,
+                    pixel_shader=color_palette,
+                    x=position[0],
+                    y=position[1],
+                )
         else:
             raise RuntimeError("Unknown type of background")
         self._bg_group.append(self._bg_sprite)
@@ -487,7 +544,7 @@ class PyPortal:
         """
         # pylint: enable=line-too-long
         if not glyphs:
-            glyphs = b'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-!,. "\'?!'
+            glyphs = b"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-!,. \"'?!"
         print("Preloading font glyphs:", glyphs)
         if self._text_font:
             self._text_font.load_glyphs(glyphs)
@@ -510,7 +567,9 @@ class PyPortal:
             return  # nothing to do!
 
         if self._caption:
-            self._caption._update_text(str(caption_text))  # pylint: disable=protected-access
+            self._caption._update_text(  # pylint: disable=protected-access
+                str(caption_text)
+            )
             try:
                 board.DISPLAY.refresh(target_frames_per_second=60)
             except AttributeError:
@@ -534,7 +593,7 @@ class PyPortal:
         if self._text_font:
             string = str(val)
             if self._text_maxlen[index]:
-                string = string[:self._text_maxlen[index]]
+                string = string[: self._text_maxlen[index]]
             if self._text[index]:
                 # print("Replacing text area with :", string)
                 # self._text[index].text = string
@@ -607,16 +666,18 @@ class PyPortal:
         self._connect_esp()
         api_url = None
         try:
-            aio_username = secrets['aio_username']
-            aio_key = secrets['aio_key']
+            aio_username = secrets["aio_username"]
+            aio_key = secrets["aio_key"]
         except KeyError:
-            raise KeyError("\n\nOur time service requires a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
+            raise KeyError(
+                "\n\nOur time service requires a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'"  # pylint: disable=line-too-long
+            )
 
-        location = secrets.get('timezone', location)
+        location = secrets.get("timezone", location)
         if location:
             print("Getting time for timezone", location)
             api_url = (TIME_SERVICE + "&tz=%s") % (aio_username, aio_key, location)
-        else: # we'll try to figure it out from the IP address
+        else:  # we'll try to figure it out from the IP address
             print("Getting time from IP address")
             api_url = TIME_SERVICE % (aio_username, aio_key)
         api_url += TIME_SERVICE_STRFTIME
@@ -627,19 +688,22 @@ class PyPortal:
             if self._debug:
                 print("Time request: ", api_url)
                 print("Time reply: ", response.text)
-            times = response.text.split(' ')
+            times = response.text.split(" ")
             the_date = times[0]
             the_time = times[1]
             year_day = int(times[2])
             week_day = int(times[3])
             is_dst = None  # no way to know yet
         except KeyError:
-            raise KeyError("Was unable to lookup the time, try setting secrets['timezone'] according to http://worldtimeapi.org/timezones")  # pylint: disable=line-too-long
-        year, month, mday = [int(x) for x in the_date.split('-')]
-        the_time = the_time.split('.')[0]
-        hours, minutes, seconds = [int(x) for x in the_time.split(':')]
-        now = time.struct_time((year, month, mday, hours, minutes, seconds, week_day, year_day,
-                                is_dst))
+            raise KeyError(
+                "Was unable to lookup the time, try setting secrets['timezone'] according to http://worldtimeapi.org/timezones"  # pylint: disable=line-too-long
+            )
+        year, month, mday = [int(x) for x in the_date.split("-")]
+        the_time = the_time.split(".")[0]
+        hours, minutes, seconds = [int(x) for x in the_time.split(":")]
+        now = time.struct_time(
+            (year, month, mday, hours, minutes, seconds, week_day, year_day, is_dst)
+        )
         print(now)
         rtc.RTC().datetime = now
 
@@ -663,7 +727,7 @@ class PyPortal:
 
         if self._debug:
             print(r.headers)
-        content_length = int(r.headers['content-length'])
+        content_length = int(r.headers["content-length"])
         remaining = content_length
         print("Saving data to ", filename)
         stamp = time.monotonic()
@@ -673,9 +737,12 @@ class PyPortal:
             remaining -= len(i)
             file.write(i)
             if self._debug:
-                print("Read %d bytes, %d remaining" % (content_length-remaining, remaining))
+                print(
+                    "Read %d bytes, %d remaining"
+                    % (content_length - remaining, remaining)
+                )
             else:
-                print(".", end='')
+                print(".", end="")
             if not remaining:
                 break
             self.neo_status((100, 100, 0))
@@ -683,7 +750,9 @@ class PyPortal:
 
         r.close()
         stamp = time.monotonic() - stamp
-        print("Created file of %d bytes in %0.1f seconds" % (os.stat(filename)[6], stamp))
+        print(
+            "Created file of %d bytes in %0.1f seconds" % (os.stat(filename)[6], stamp)
+        )
         self.neo_status((0, 0, 0))
         if not content_length == os.stat(filename)[6]:
             raise RuntimeError
@@ -692,16 +761,16 @@ class PyPortal:
         self.neo_status((0, 0, 100))
         while not self._esp.is_connected:
             # secrets dictionary must contain 'ssid' and 'password' at a minimum
-            print("Connecting to AP", secrets['ssid'])
-            if secrets['ssid'] == 'CHANGE ME' or secrets['password'] == 'CHANGE ME':
-                change_me = "\n"+"*"*45
+            print("Connecting to AP", secrets["ssid"])
+            if secrets["ssid"] == "CHANGE ME" or secrets["password"] == "CHANGE ME":
+                change_me = "\n" + "*" * 45
                 change_me += "\nPlease update the 'secrets.py' file on your\n"
                 change_me += "CIRCUITPY drive to include your local WiFi\n"
                 change_me += "access point SSID name in 'ssid' and SSID\n"
                 change_me += "password in 'password'. Then save to reload!\n"
-                change_me += "*"*45
+                change_me += "*" * 45
                 raise OSError(change_me)
-            self.neo_status((100, 0, 0)) # red = not connected
+            self.neo_status((100, 0, 0))  # red = not connected
             try:
                 self._esp.connect(secrets)
             except RuntimeError as error:
@@ -715,14 +784,22 @@ class PyPortal:
            with the given width and height. aio_username and aio_key must be
            set in secrets."""
         try:
-            aio_username = secrets['aio_username']
-            aio_key = secrets['aio_key']
+            aio_username = secrets["aio_username"]
+            aio_key = secrets["aio_key"]
         except KeyError:
-            raise KeyError("\n\nOur image converter service require a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'")# pylint: disable=line-too-long
+            raise KeyError(
+                "\n\nOur image converter service require a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'"  # pylint: disable=line-too-long
+            )
 
-        return IMAGE_CONVERTER_SERVICE % (aio_username, aio_key,
-                                          width, height,
-                                          color_depth, image_url)
+        return IMAGE_CONVERTER_SERVICE % (
+            aio_username,
+            aio_key,
+            width,
+            height,
+            color_depth,
+            image_url,
+        )
+
     def sd_check(self):
         """Returns True if there is an SD card preset and False
         if there is no SD card. The _sdcard value is set in _init
@@ -742,12 +819,16 @@ class PyPortal:
         # pylint: enable=line-too-long
 
         try:
-            aio_username = secrets['aio_username']
-            aio_key = secrets['aio_key']
+            aio_username = secrets["aio_username"]
+            aio_key = secrets["aio_key"]
         except KeyError:
-            raise KeyError("Adafruit IO secrets are kept in secrets.py, please add them there!\n\n")
+            raise KeyError(
+                "Adafruit IO secrets are kept in secrets.py, please add them there!\n\n"
+            )
 
-        wifi = adafruit_esp32spi_wifimanager.ESPSPI_WiFiManager(self._esp, secrets, None)
+        wifi = adafruit_esp32spi_wifimanager.ESPSPI_WiFiManager(
+            self._esp, secrets, None
+        )
         io_client = IO_HTTP(aio_username, aio_key, wifi)
 
         while True:
@@ -763,12 +844,12 @@ class PyPortal:
 
         while True:
             try:
-                io_client.send_data(feed_id['key'], data)
+                io_client.send_data(feed_id["key"], data)
             except RuntimeError as exception:
                 print("An error occured, retrying! 2 -", exception)
                 continue
             except NameError as exception:
-                print(feed_id['key'], data, exception)
+                print(feed_id["key"], data, exception)
                 continue
             break
 
@@ -795,12 +876,12 @@ class PyPortal:
         if not r:
             self._connect_esp()
             # great, lets get the data
-            print("Retrieving data...", end='')
-            self.neo_status((100, 100, 0))   # yellow = fetching data
+            print("Retrieving data...", end="")
+            self.neo_status((100, 100, 0))  # yellow = fetching data
             gc.collect()
             r = requests.get(self._url, headers=self._headers, timeout=10)
             gc.collect()
-            self.neo_status((0, 0, 100))   # green = got data
+            self.neo_status((0, 0, 100))  # green = got data
             print("Reply is OK!")
 
         if self._debug:
@@ -811,14 +892,14 @@ class PyPortal:
                 gc.collect()
                 json_out = r.json()
                 gc.collect()
-            except ValueError:            # failed to parse?
+            except ValueError:  # failed to parse?
                 print("Couldn't parse json: ", r.text)
                 raise
             except MemoryError:
                 supervisor.reload()
 
         if self._regexp_path:
-            import re
+            import re  # pylint: disable=import-outside-toplevel
 
         if self._image_url_path:
             image_url = self._image_url_path
@@ -856,8 +937,12 @@ class PyPortal:
         iwidth = 0
         iheight = 0
         if self._image_dim_json_path:
-            iwidth = int(PyPortal._json_traverse(json_out, self._image_dim_json_path[0]))
-            iheight = int(PyPortal._json_traverse(json_out, self._image_dim_json_path[1]))
+            iwidth = int(
+                PyPortal._json_traverse(json_out, self._image_dim_json_path[0])
+            )
+            iheight = int(
+                PyPortal._json_traverse(json_out, self._image_dim_json_path[1])
+            )
             print("image dim:", iwidth, iheight)
 
         # we're done with the requests object, lets delete it so we can do more!
@@ -869,20 +954,24 @@ class PyPortal:
             try:
                 print("original URL:", image_url)
                 if iwidth < iheight:
-                    image_url = self.image_converter_url(image_url,
-                                                         int(self._image_resize[1]
-                                                             * self._image_resize[1]
-                                                             / self._image_resize[0]),
-                                                         self._image_resize[1])
+                    image_url = self.image_converter_url(
+                        image_url,
+                        int(
+                            self._image_resize[1]
+                            * self._image_resize[1]
+                            / self._image_resize[0]
+                        ),
+                        self._image_resize[1],
+                    )
                 else:
-                    image_url = self.image_converter_url(image_url,
-                                                         self._image_resize[0],
-                                                         self._image_resize[1])
+                    image_url = self.image_converter_url(
+                        image_url, self._image_resize[0], self._image_resize[1]
+                    )
                 print("convert URL:", image_url)
                 # convert image to bitmap and cache
-                #print("**not actually wgetting**")
+                # print("**not actually wgetting**")
                 filename = "/cache.bmp"
-                chunk_size = 4096      # default chunk size is 12K (for QSPI)
+                chunk_size = 4096  # default chunk size is 12K (for QSPI)
                 if self._sdcard:
                     filename = "/sd" + filename
                     chunk_size = 512  # current bug in big SD writes -> stick to 1 block
@@ -890,18 +979,26 @@ class PyPortal:
                     self.wget(image_url, filename, chunk_size=chunk_size)
                 except OSError as error:
                     print(error)
-                    raise OSError("""\n\nNo writable filesystem found for saving datastream. Insert an SD card or set internal filesystem to be unsafe by setting 'disable_concurrent_write_protection' in the mount options in boot.py""") # pylint: disable=line-too-long
+                    raise OSError(
+                        """\n\nNo writable filesystem found for saving datastream. Insert an SD card or set internal filesystem to be unsafe by setting 'disable_concurrent_write_protection' in the mount options in boot.py"""  # pylint: disable=line-too-long
+                    )
                 except RuntimeError as error:
                     print(error)
                     raise RuntimeError("wget didn't write a complete file")
                 if iwidth < iheight:
-                    pwidth = int(self._image_resize[1] *
-                                 self._image_resize[1] / self._image_resize[0])
-                    self.set_background(filename,
-                                        (self._image_position[0]
-                                         + int((self._image_resize[0]
-                                                - pwidth) / 2),
-                                         self._image_position[1]))
+                    pwidth = int(
+                        self._image_resize[1]
+                        * self._image_resize[1]
+                        / self._image_resize[0]
+                    )
+                    self.set_background(
+                        filename,
+                        (
+                            self._image_position[0]
+                            + int((self._image_resize[0] - pwidth) / 2),
+                            self._image_position[1],
+                        ),
+                    )
                 else:
                     self.set_background(filename, self._image_position)
 
@@ -927,20 +1024,22 @@ class PyPortal:
                     try:
                         string = "{:,d}".format(int(values[i]))
                     except (TypeError, ValueError):
-                        string = values[i] # ok its a string
+                        string = values[i]  # ok its a string
                 if self._debug:
                     print("Drawing text", string)
                 if self._text_wrap[i]:
                     if self._debug:
                         print("Wrapping text")
                     lines = PyPortal.wrap_nicely(string, self._text_wrap[i])
-                    string = '\n'.join(lines)
+                    string = "\n".join(lines)
                 self.set_text(string, index=i)
         if len(values) == 1:
             return values[0]
         return values
 
-    def show_QR(self, qr_data, *, qr_size=1, x=0, y=0, hide_background=False):  # pylint: disable=invalid-name
+    def show_QR(
+        self, qr_data, *, qr_size=1, x=0, y=0, hide_background=False
+    ):  # pylint: disable=invalid-name
         """Display a QR code on the TFT
 
         :param qr_data: The data for the QR code.
@@ -950,7 +1049,8 @@ class PyPortal:
         :param hide_background: Show the QR code on a black background if True.
 
         """
-        import adafruit_miniqr
+        import adafruit_miniqr  # pylint: disable=import-outside-toplevel
+
         # generate the QR code
         qrcode = adafruit_miniqr.QRCode()
         qrcode.add_data(qr_data)
@@ -963,21 +1063,23 @@ class PyPortal:
 
         # pylint: disable=invalid-name
         # bitmap the size of the matrix, plus border, monochrome (2 colors)
-        qr_bitmap = displayio.Bitmap(qrcode.matrix.width + 2, qrcode.matrix.height + 2, 2)
+        qr_bitmap = displayio.Bitmap(
+            qrcode.matrix.width + 2, qrcode.matrix.height + 2, 2
+        )
         for i in range(qr_bitmap.width * qr_bitmap.height):
             qr_bitmap[i] = 0
 
         # transcribe QR code into bitmap
         for xx in range(qrcode.matrix.width):
             for yy in range(qrcode.matrix.height):
-                qr_bitmap[xx+1, yy+1] = 1 if qrcode.matrix[xx, yy] else 0
+                qr_bitmap[xx + 1, yy + 1] = 1 if qrcode.matrix[xx, yy] else 0
 
         # display the QR code
         qr_sprite = displayio.TileGrid(qr_bitmap, pixel_shader=palette)
         if self._qr_group:
             try:
                 self._qr_group.pop()
-            except IndexError: # later test if empty
+            except IndexError:  # later test if empty
                 pass
         else:
             self._qr_group = displayio.Group()
@@ -990,7 +1092,7 @@ class PyPortal:
             board.DISPLAY.show(self._qr_group)
         self._qr_only = hide_background
 
-    def hide_QR(self): # pylint: disable=invalid-name
+    def hide_QR(self):  # pylint: disable=invalid-name
         """Clear any QR codes that are currently on the screen
         """
 
@@ -999,7 +1101,7 @@ class PyPortal:
         else:
             try:
                 self._qr_group.pop()
-            except (IndexError, AttributeError): # later test if empty
+            except (IndexError, AttributeError):  # later test if empty
                 pass
 
     # return a list of lines with wordwrapping
@@ -1011,17 +1113,17 @@ class PyPortal:
         :param int max_chars: The maximum number of characters on a line before wrapping.
 
         """
-        string = string.replace('\n', '').replace('\r', '') # strip confusing newlines
-        words = string.split(' ')
+        string = string.replace("\n", "").replace("\r", "")  # strip confusing newlines
+        words = string.split(" ")
         the_lines = []
         the_line = ""
         for w in words:
-            if len(the_line+' '+w) <= max_chars:
-                the_line += ' '+w
+            if len(the_line + " " + w) <= max_chars:
+                the_line += " " + w
             else:
                 the_lines.append(the_line)
-                the_line = ''+w
-        if the_line:      # last line remaining
+                the_line = "" + w
+        if the_line:  # last line remaining
             the_lines.append(the_line)
         # remove first space from first line:
         the_lines[0] = the_lines[0][1:]
