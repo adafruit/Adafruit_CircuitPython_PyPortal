@@ -53,13 +53,13 @@ import pulseio
 import neopixel
 from adafruit_esp32spi import adafruit_esp32spi, adafruit_esp32spi_wifimanager
 import adafruit_esp32spi.adafruit_esp32spi_socket as socket
+from adafruit_bitmap_font import bitmap_font
 import adafruit_requests as requests
 import storage
 import displayio
 import audioio
 import rtc
 import supervisor
-from adafruit_bitmap_font import bitmap_font
 from adafruit_io.adafruit_io import IO_HTTP, AdafruitIO_RequestError
 import adafruit_sdcard
 
