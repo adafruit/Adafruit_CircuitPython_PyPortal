@@ -853,7 +853,7 @@ class PyPortal:
                 continue
             break
 
-    def fetch(self, refresh_url=None):
+    def fetch(self, refresh_url=None, timeout=10):
         """Fetch data from the url we initialized with, perfom any parsing,
         and display text or graphics. This function does pretty much everything
         Optionally update the URL
@@ -879,7 +879,7 @@ class PyPortal:
             print("Retrieving data...", end="")
             self.neo_status((100, 100, 0))  # yellow = fetching data
             gc.collect()
-            r = requests.get(self._url, headers=self._headers, timeout=10)
+            r = requests.get(self._url, headers=self._headers, timeout=timeout)
             gc.collect()
             self.neo_status((0, 0, 100))  # green = got data
             print("Reply is OK!")
