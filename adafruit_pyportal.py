@@ -57,6 +57,7 @@ from adafruit_bitmap_font import bitmap_font
 import adafruit_requests as requests
 import storage
 import displayio
+from adafruit_display_text.Label import Label
 import audioio
 import rtc
 import supervisor
@@ -70,7 +71,7 @@ elif hasattr(board, "BUTTON_CLOCK"):
     from adafruit_cursorcontrol.cursorcontrol import Cursor
     from adafruit_cursorcontrol.cursorcontrol_cursormanager import CursorManager
 
-from adafruit_display_text.Label import Label
+
 
 try:
     from secrets import secrets
