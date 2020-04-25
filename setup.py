@@ -34,7 +34,7 @@ setup(
         "adafruit-circuitpython-busdevice",
         "adafruit-circuitpython-touchscreen",
         "adafruit-circuitpython-esp32spi",
-        "adafruit-circuitpython-bitmapfont",
+        "adafruit-circuitpython-bitmap-font",
         "adafruit-circuitpython-displaytext",
         "adafruit-circuitpython-neopixel",
     ],
