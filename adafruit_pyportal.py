@@ -72,7 +72,6 @@ elif hasattr(board, "BUTTON_CLOCK"):
     from adafruit_cursorcontrol.cursorcontrol_cursormanager import CursorManager
 
 
-
 try:
     from secrets import secrets
 except ImportError:
