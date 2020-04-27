@@ -57,6 +57,7 @@ from adafruit_bitmap_font import bitmap_font
 import adafruit_requests as requests
 import storage
 import displayio
+from adafruit_display_text.label import Label
 import audioio
 import rtc
 import supervisor
@@ -70,16 +71,6 @@ elif hasattr(board, "BUTTON_CLOCK"):
     from adafruit_cursorcontrol.cursorcontrol import Cursor
     from adafruit_cursorcontrol.cursorcontrol_cursormanager import CursorManager
 
-try:
-    from adafruit_display_text.text_area import (  # pylint: disable=unused-import
-        TextArea,
-    )
-
-    print(
-        "*** WARNING ***\nPlease update your library bundle to the latest 'adafruit_display_text' version as we've deprecated 'text_area' in favor of 'label'"  # pylint: disable=line-too-long
-    )
-except ImportError:
-    from adafruit_display_text.Label import Label
 
 try:
     from secrets import secrets
