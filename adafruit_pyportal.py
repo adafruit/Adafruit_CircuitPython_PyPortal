@@ -57,7 +57,7 @@ from adafruit_bitmap_font import bitmap_font
 import adafruit_requests as requests
 import storage
 import displayio
-from adafruit_display_text.Label import Label
+from adafruit_display_text.label import Label
 import audioio
 import rtc
 import supervisor
