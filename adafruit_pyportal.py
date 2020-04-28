@@ -176,7 +176,7 @@ class PyPortal:
         headers=None,
         json_path=None,
         regexp_path=None,
-        convert_image=False,
+        convert_image=True,
         default_bg=0x000000,
         status_neopixel=None,
         text_font=None,
@@ -202,6 +202,7 @@ class PyPortal:
     ):
 
         self._debug = debug
+        self._convert_image= convert_image
 
         try:
             if hasattr(board, "TFT_BACKLIGHT"):
