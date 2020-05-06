@@ -126,8 +126,8 @@ class PyPortal:
     :param regexp_path: The list of regexp strings to get data out (use a single regexp group). Can
                         be list of regexps for multiple data points. Defaults to ``None`` to not
                         use regexp.
-    :param convert_image: Determine whether or not to use the AdafruitIO image converter service. 
-                          Set as False if your image is already resized. Defaults to True. 
+    :param convert_image: Determine whether or not to use the AdafruitIO image converter service.
+                          Set as False if your image is already resized. Defaults to True.
     :param default_bg: The path to your default background image file or a hex color.
                        Defaults to 0x000000.
     :param status_neopixel: The pin for the status NeoPixel. Use ``board.NEOPIXEL`` for the on-board
