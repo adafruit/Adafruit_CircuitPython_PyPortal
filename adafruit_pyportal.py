@@ -202,7 +202,7 @@ class PyPortal:
     ):
 
         self._debug = debug
-        self._convert_image= convert_image
+        self._convert_image = convert_image
 
         try:
             if hasattr(board, "TFT_BACKLIGHT"):
@@ -949,22 +949,22 @@ class PyPortal:
             try:
                 print("original URL:", image_url)
                 if self._convert_image:
-                  if iwidth < iheight:
-                      image_url = self.image_converter_url(
-                          image_url,
-                          int(
-                              self._image_resize[1]
-                              * self._image_resize[1]
-                              / self._image_resize[0]
-                          ),
-                          self._image_resize[1],
-                      )
-                  else:
-                      image_url = self.image_converter_url(
-                          image_url, self._image_resize[0], self._image_resize[1]
-                      )
-                  
-                  print("convert URL:", image_url)
+                    if iwidth < iheight:
+                        image_url = self.image_converter_url(
+                            image_url,
+                            int(
+                                self._image_resize[1]
+                                * self._image_resize[1]
+                                / self._image_resize[0]
+                            ),
+                            self._image_resize[1],
+                        )
+                    else:
+                        image_url = self.image_converter_url(
+                            image_url, self._image_resize[0], self._image_resize[1]
+                        )
+
+                    print("convert URL:", image_url)
                 # convert image to bitmap and cache
                 # print("**not actually wgetting**")
                 filename = "/cache.bmp"
