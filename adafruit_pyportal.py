@@ -59,6 +59,7 @@ import storage
 import displayio
 from adafruit_display_text.label import Label
 import audioio
+import audiocore
 import rtc
 import supervisor
 from adafruit_io.adafruit_io import IO_HTTP, AdafruitIO_RequestError
@@ -628,7 +629,7 @@ class PyPortal:
 
         """
         wavfile = open(file_name, "rb")
-        wavedata = audioio.WaveFile(wavfile)
+        wavedata = audiocore.WaveFile(wavfile)
         self._speaker_enable.value = True
         self.audio.play(wavedata)
         if not wait_to_finish:
