@@ -26,6 +26,7 @@ autodoc_mock_imports = [
     "supervisor",
     "pulseio",
     "audioio",
+    "audiocore",
     "displayio",
     "neopixel",
     "microcontroller",

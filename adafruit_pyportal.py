@@ -59,6 +59,7 @@ import storage
 import displayio
 from adafruit_display_text.label import Label
 import audioio
+import audiocore
 import rtc
 import supervisor
 from adafruit_io.adafruit_io import IO_HTTP, AdafruitIO_RequestError
@@ -129,7 +130,7 @@ class PyPortal:
     :param default_bg: The path to your default background image file or a hex color.
                        Defaults to 0x000000.
     :param status_neopixel: The pin for the status NeoPixel. Use ``board.NEOPIXEL`` for the on-board
-                            NeoPixel. Defaults to ``None``, no status LED
+                            NeoPixel. Defaults to ``None``, not the status LED
     :param str text_font: The path to your font file for your data text display.
     :param text_position: The position of your extracted text on the display in an (x, y) tuple.
                           Can be a list of tuples for when there's a list of json_paths, for example
@@ -628,7 +629,7 @@ class PyPortal:
 
         """
         wavfile = open(file_name, "rb")
-        wavedata = audioio.WaveFile(wavfile)
+        wavedata = audiocore.WaveFile(wavfile)
         self._speaker_enable.value = True
         self.audio.play(wavedata)
         if not wait_to_finish:
