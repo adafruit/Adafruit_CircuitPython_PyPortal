@@ -63,7 +63,7 @@ import audiocore
 import rtc
 import supervisor
 from adafruit_io.adafruit_io import IO_HTTP, AdafruitIO_RequestError
-import adafruit_sdcard
+import sdcardio
 
 
 if hasattr(board, "TOUCH_XL"):
@@ -328,10 +328,10 @@ class PyPortal:
 
         if self._debug:
             print("Init SD Card")
-        sd_cs = DigitalInOut(board.SD_CS)
+        sd_cs = board.SD_CS
         self._sdcard = None
         try:
-            self._sdcard = adafruit_sdcard.SDCard(spi, sd_cs)
+            self._sdcard = sdcardio.SDCard(spi, sd_cs)
             vfs = storage.VfsFat(self._sdcard)
             storage.mount(vfs, "/sd")
         except OSError as error:
