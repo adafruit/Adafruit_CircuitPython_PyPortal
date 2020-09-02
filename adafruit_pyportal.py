@@ -660,10 +660,10 @@ class PyPortal:
         try:
             aio_username = secrets["aio_username"]
             aio_key = secrets["aio_key"]
-        except KeyError:
+        except KeyError as error:
             raise KeyError(
                 "\n\nOur time service requires a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'"  # pylint: disable=line-too-long
-            )
+            ) from error
 
         location = secrets.get("timezone", location)
         if location:
@@ -686,10 +686,10 @@ class PyPortal:
             year_day = int(times[2])
             week_day = int(times[3])
             is_dst = None  # no way to know yet
-        except KeyError:
+        except KeyError as error:
             raise KeyError(
                 "Was unable to lookup the time, try setting secrets['timezone'] according to http://worldtimeapi.org/timezones"  # pylint: disable=line-too-long
-            )
+            ) from error
         year, month, mday = [int(x) for x in the_date.split("-")]
         the_time = the_time.split(".")[0]
         hours, minutes, seconds = [int(x) for x in the_time.split(":")]
@@ -778,10 +778,10 @@ class PyPortal:
         try:
             aio_username = secrets["aio_username"]
             aio_key = secrets["aio_key"]
-        except KeyError:
+        except KeyError as error:
             raise KeyError(
                 "\n\nOur image converter service require a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'"  # pylint: disable=line-too-long
-            )
+            ) from error
 
         return IMAGE_CONVERTER_SERVICE % (
             aio_username,
@@ -813,10 +813,10 @@ class PyPortal:
         try:
             aio_username = secrets["aio_username"]
             aio_key = secrets["aio_key"]
-        except KeyError:
+        except KeyError as error:
             raise KeyError(
                 "Adafruit IO secrets are kept in secrets.py, please add them there!\n\n"
-            )
+            ) from error
 
         wifi = adafruit_esp32spi_wifimanager.ESPSPI_WiFiManager(
             self._esp, secrets, None
@@ -970,13 +970,11 @@ class PyPortal:
                 try:
                     self.wget(image_url, filename, chunk_size=chunk_size)
                 except OSError as error:
-                    print(error)
                     raise OSError(
                         """\n\nNo writable filesystem found for saving datastream. Insert an SD card or set internal filesystem to be unsafe by setting 'disable_concurrent_write_protection' in the mount options in boot.py"""  # pylint: disable=line-too-long
-                    )
+                    ) from error
                 except RuntimeError as error:
-                    print(error)
-                    raise RuntimeError("wget didn't write a complete file")
+                    raise RuntimeError("wget didn't write a complete file") from error
                 if iwidth < iheight:
                     pwidth = int(
                         self._image_resize[1]
