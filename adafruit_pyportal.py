@@ -63,7 +63,12 @@ import audiocore
 import rtc
 import supervisor
 from adafruit_io.adafruit_io import IO_HTTP, AdafruitIO_RequestError
-import sdcardio
+try:
+  import sdcardio
+  native_sd = True
+except ImportError:
+  import adafruit_sdcard as sdcardio
+  native_sd = False
 
 
 if hasattr(board, "TOUCH_XL"):
@@ -329,6 +334,8 @@ class PyPortal:
         if self._debug:
             print("Init SD Card")
         sd_cs = board.SD_CS
+        if not native_sd:
+          sd_cs = DigitalInOut(sd_cs)
         self._sdcard = None
         try:
             self._sdcard = sdcardio.SDCard(spi, sd_cs)
