@@ -66,9 +66,11 @@ from adafruit_io.adafruit_io import IO_HTTP, AdafruitIO_RequestError
 
 try:
     import sdcardio
+
     NATIVE_SD = True
 except ImportError:
     import adafruit_sdcard as sdcardio
+
     NATIVE_SD = False
 
 if hasattr(board, "TOUCH_XL"):
