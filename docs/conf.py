@@ -37,6 +37,7 @@ autodoc_mock_imports = [
     "secrets",
     "adafruit_sdcard",
     "storage",
+    "sdcardio",
     "adafruit_io",
     "adafruit_cursorcontrol",
     "adafruit_requests",
