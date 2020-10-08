@@ -728,8 +728,11 @@ class PyPortal:
 
         if self._debug:
             print(r.headers)
-        content_length = int(r.headers["content-length"])
-        remaining = content_length
+        if 'content-length' in r.headers:
+            content_length = int(r.headers['content-length'])
+            remaining = content_length
+        else:
+            raise RuntimeError("Content-length missing from headers")
         print("Saving data to ", filename)
         stamp = time.monotonic()
         file = open(filename, "wb")
