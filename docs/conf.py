@@ -41,6 +41,7 @@ autodoc_mock_imports = [
     "adafruit_io",
     "adafruit_cursorcontrol",
     "adafruit_requests",
+    "terminalio",
 ]
 
 
