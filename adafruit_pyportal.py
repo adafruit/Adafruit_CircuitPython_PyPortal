@@ -135,6 +135,8 @@ class PyPortal:
     :param regexp_path: The list of regexp strings to get data out (use a single regexp group). Can
                         be list of regexps for multiple data points. Defaults to ``None`` to not
                         use regexp.
+    :param convert_image: Determine whether or not to use the AdafruitIO image converter service.
+                          Set as False if your image is already resized. Defaults to True.
     :param default_bg: The path to your default background image file or a hex color.
                        Defaults to 0x000000.
     :param status_neopixel: The pin for the status NeoPixel. Use ``board.NEOPIXEL`` for the on-board
@@ -184,6 +186,7 @@ class PyPortal:
         headers=None,
         json_path=None,
         regexp_path=None,
+        convert_image=True,
         default_bg=0x000000,
         status_neopixel=None,
         text_font=terminalio.FONT,
@@ -210,6 +213,7 @@ class PyPortal:
     ):
 
         self._debug = debug
+        self._convert_image = convert_image
 
         try:
             if hasattr(board, "TFT_BACKLIGHT"):
@@ -743,8 +747,11 @@ class PyPortal:
 
         if self._debug:
             print(r.headers)
-        content_length = int(r.headers["content-length"])
-        remaining = content_length
+        if "content-length" in r.headers:
+            content_length = int(r.headers["content-length"])
+            remaining = content_length
+        else:
+            raise RuntimeError("Content-length missing from headers")
         print("Saving data to ", filename)
         stamp = time.monotonic()
         file = open(filename, "wb")
@@ -971,21 +978,23 @@ class PyPortal:
         if image_url:
             try:
                 print("original URL:", image_url)
-                if iwidth < iheight:
-                    image_url = self.image_converter_url(
-                        image_url,
-                        int(
-                            self._image_resize[1]
-                            * self._image_resize[1]
-                            / self._image_resize[0]
-                        ),
-                        self._image_resize[1],
-                    )
-                else:
-                    image_url = self.image_converter_url(
-                        image_url, self._image_resize[0], self._image_resize[1]
-                    )
-                print("convert URL:", image_url)
+                if self._convert_image:
+                    if iwidth < iheight:
+                        image_url = self.image_converter_url(
+                            image_url,
+                            int(
+                                self._image_resize[1]
+                                * self._image_resize[1]
+                                / self._image_resize[0]
+                            ),
+                            self._image_resize[1],
+                        )
+                    else:
+                        image_url = self.image_converter_url(
+                            image_url, self._image_resize[0], self._image_resize[1]
+                        )
+
+                    print("convert URL:", image_url)
                 # convert image to bitmap and cache
                 # print("**not actually wgetting**")
                 filename = "/cache.bmp"
