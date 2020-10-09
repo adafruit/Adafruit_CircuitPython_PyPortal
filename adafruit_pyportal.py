@@ -46,6 +46,7 @@ Implementation Notes
 import os
 import time
 import gc
+from micropython import const
 import board
 import busio
 from digitalio import DigitalInOut
@@ -108,20 +109,29 @@ TIME_SERVICE_STRFTIME = (
 LOCALFILE = "local.txt"
 # pylint: enable=line-too-long
 
+CONTENT_TEXT = const(1)
+CONTENT_JSON = const(2)
+CONTENT_IMAGE = const(3)
+
 
 class Fake_Requests:
     """For faking 'requests' using a local file instead of the network."""
 
     def __init__(self, filename):
         self._filename = filename
-        with open(filename, "r") as file:
-            self.text = file.read()
 
     def json(self):
         """json parsed version for local requests."""
         import json  # pylint: disable=import-outside-toplevel
 
-        return json.loads(self.text)
+        with open(self._filename, "r") as file:
+            return json.load(file)
+
+    @property
+    def text(self):
+        """raw text version for local requests."""
+        with open(self._filename, "r") as file:
+            return file.read()
 
 
 class PyPortal:
@@ -729,14 +739,17 @@ class PyPortal:
 
         self.neo_status((100, 100, 0))
         r = requests.get(url, stream=True)
+        headers = {}
+        for title, content in r.headers.items():
+            headers[title.lower()] = content
 
         if self._debug:
-            print(r.headers)
-        if "content-length" in r.headers:
-            content_length = int(r.headers["content-length"])
-            remaining = content_length
+            print(headers)
+        if "content-length" in headers:
+            content_length = int(headers["content-length"])
         else:
-            raise RuntimeError("Content-length missing from headers")
+            raise RuntimeError("Content-Length missing from headers")
+        remaining = content_length
         print("Saving data to ", filename)
         stamp = time.monotonic()
         file = open(filename, "wb")
@@ -871,6 +884,7 @@ class PyPortal:
         json_out = None
         image_url = None
         values = []
+        content_type = CONTENT_TEXT
 
         gc.collect()
         if self._debug:
@@ -888,14 +902,41 @@ class PyPortal:
             self.neo_status((100, 100, 0))  # yellow = fetching data
             gc.collect()
             r = requests.get(self._url, headers=self._headers, timeout=timeout)
+            headers = {}
+            for title, content in r.headers.items():
+                headers[title.lower()] = content
             gc.collect()
-            self.neo_status((0, 0, 100))  # green = got data
-            print("Reply is OK!")
+            if self._debug:
+                print("Headers:", headers)
+            if r.status_code == 200:
+                print("Reply is OK!")
+                self.neo_status((0, 0, 100))  # green = got data
+                if "content-type" in headers:
+                    if "image/" in headers["content-type"]:
+                        content_type = CONTENT_IMAGE
+                    elif "application/json" in headers["content-type"]:
+                        content_type = CONTENT_JSON
+            else:
+                print(
+                    "HTTP Error {}: {}".format(r.status_code, r.reason.decode("utf-8"))
+                )
+                if self._debug:
+                    if "content-length" in headers:
+                        print(
+                            "Content-Length: {}".format(int(headers["content-length"]))
+                        )
+                    if "date" in headers:
+                        print("Date: {}".format(headers["date"]))
+                self.neo_status((100, 0, 0))  # red = http error
+                return None
 
-        if self._debug and not self._image_json_path and not self._json_path:
+        if self._debug and content_type == CONTENT_TEXT:
             print(r.text)
 
-        if self._image_json_path or self._json_path:
+        if self._debug:
+            print("Detected Content Type", content_type)
+
+        if content_type == CONTENT_JSON:
             try:
                 gc.collect()
                 json_out = r.json()
