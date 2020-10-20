@@ -383,6 +383,8 @@ class PyPortal:
                     text_maxlen = [0] * num
                 if not text_transform:
                     text_transform = [None] * num
+                if not isinstance(text_scale, (list, tuple)):
+                    text_scale = [text_scale] * num
             else:
                 num = 1
                 text_position = (text_position,)
