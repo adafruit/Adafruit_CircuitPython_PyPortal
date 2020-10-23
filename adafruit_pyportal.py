@@ -26,7 +26,7 @@
 CircuitPython driver for Adafruit PyPortal.
 
 
-* Author(s): Limor Fried, Kevin J. Walters
+* Author(s): Limor Fried, Kevin J. Walters, Melissa LeBlanc-Williams
 
 Implementation Notes
 --------------------
@@ -59,6 +59,7 @@ import adafruit_requests as requests
 import storage
 import displayio
 from adafruit_display_text.label import Label
+import terminalio
 import audioio
 import audiocore
 import rtc
@@ -159,6 +160,7 @@ class PyPortal:
                       ``False``, no wrapping.
     :param text_maxlen: The max length of the text for text wrapping. Defaults to 0.
     :param text_transform: A function that will be called on the text before display
+    :param int text_scale: The factor to scale the default size of the text by
     :param json_transform: A function or a list of functions to call with the parsed JSON.
                            Changes and additions are permitted for the ``dict`` object.
     :param image_json_path: The JSON traversal path for a background image to display. Defaults to
@@ -197,12 +199,13 @@ class PyPortal:
         convert_image=True,
         default_bg=0x000000,
         status_neopixel=None,
-        text_font=None,
+        text_font=terminalio.FONT,
         text_position=None,
         text_color=0x808080,
         text_wrap=False,
         text_maxlen=0,
         text_transform=None,
+        text_scale=1,
         json_transform=None,
         image_json_path=None,
         image_resize=None,
@@ -380,6 +383,8 @@ class PyPortal:
                     text_maxlen = [0] * num
                 if not text_transform:
                     text_transform = [None] * num
+                if not isinstance(text_scale, (list, tuple)):
+                    text_scale = [text_scale] * num
             else:
                 num = 1
                 text_position = (text_position,)
@@ -387,13 +392,18 @@ class PyPortal:
                 text_wrap = (text_wrap,)
                 text_maxlen = (text_maxlen,)
                 text_transform = (text_transform,)
+                text_scale = (text_scale,)
             self._text = [None] * num
             self._text_color = [None] * num
             self._text_position = [None] * num
             self._text_wrap = [None] * num
             self._text_maxlen = [None] * num
             self._text_transform = [None] * num
-            self._text_font = bitmap_font.load_font(text_font)
+            self._text_scale = [None] * num
+            if text_font is not terminalio.FONT:
+                self._text_font = bitmap_font.load_font(text_font)
+            else:
+                self._text_font = terminalio.FONT
             if self._debug:
                 print("Loading font glyphs")
             # self._text_font.load_glyphs(b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
@@ -409,6 +419,9 @@ class PyPortal:
                 self._text_wrap[i] = text_wrap[i]
                 self._text_maxlen[i] = text_maxlen[i]
                 self._text_transform[i] = text_transform[i]
+                if not isinstance(text_scale[i], (int, float)) or text_scale[i] < 1:
+                    text_scale[i] = 1
+                self._text_scale[i] = text_scale[i]
         else:
             self._text_font = None
             self._text = None
@@ -561,7 +574,7 @@ class PyPortal:
         if not glyphs:
             glyphs = b"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-!,. \"'?!"
         print("Preloading font glyphs:", glyphs)
-        if self._text_font:
+        if self._text_font and self._text_font is not terminalio.FONT:
             self._text_font.load_glyphs(glyphs)
 
     def set_caption(self, caption_text, caption_position, caption_color):
@@ -621,7 +634,9 @@ class PyPortal:
                             text_index = i
                             break
 
-                self._text[index] = Label(self._text_font, text=string)
+                self._text[index] = Label(
+                    self._text_font, text=string, scale=self._text_scale[index]
+                )
                 self._text[index].color = self._text_color[index]
                 self._text[index].x = self._text_position[index][0]
                 self._text[index].y = self._text_position[index][1]
@@ -630,7 +645,9 @@ class PyPortal:
 
             if self._text_position[index]:  # if we want it placed somewhere...
                 print("Making text area with string:", string)
-                self._text[index] = Label(self._text_font, text=string)
+                self._text[index] = Label(
+                    self._text_font, text=string, scale=self._text_scale[index]
+                )
                 self._text[index].color = self._text_color[index]
                 self._text[index].x = self._text_position[index][0]
                 self._text[index].y = self._text_position[index][1]
