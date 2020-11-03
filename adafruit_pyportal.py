@@ -375,7 +375,9 @@ class PyPortal:
         self.set_caption(caption_text, caption_position, caption_color)
 
         if text_font:
-            if text_position is not None and isinstance(text_position[0], (list, tuple)):
+            if text_position is not None and isinstance(
+                text_position[0], (list, tuple)
+            ):
                 num = len(text_position)
                 if not text_wrap:
                     text_wrap = [0] * num
@@ -819,8 +821,8 @@ class PyPortal:
     @staticmethod
     def image_converter_url(image_url, width, height, color_depth=16):
         """Generate a converted image url from the url passed in,
-           with the given width and height. aio_username and aio_key must be
-           set in secrets."""
+        with the given width and height. aio_username and aio_key must be
+        set in secrets."""
         try:
             aio_username = secrets["aio_username"]
             aio_key = secrets["aio_key"]
@@ -1163,8 +1165,7 @@ class PyPortal:
         self._qr_only = hide_background
 
     def hide_QR(self):  # pylint: disable=invalid-name
-        """Clear any QR codes that are currently on the screen
-        """
+        """Clear any QR codes that are currently on the screen"""
 
         if self._qr_only:
             board.DISPLAY.show(self.splash)
