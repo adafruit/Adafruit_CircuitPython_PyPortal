@@ -375,7 +375,7 @@ class PyPortal:
         self.set_caption(caption_text, caption_position, caption_color)
 
         if text_font:
-            if isinstance(text_position[0], (list, tuple)):
+            if text_position is not None and isinstance(text_position[0], (list, tuple)):
                 num = len(text_position)
                 if not text_wrap:
                     text_wrap = [0] * num
@@ -932,6 +932,8 @@ class PyPortal:
                     if "image/" in headers["content-type"]:
                         content_type = CONTENT_IMAGE
                     elif "application/json" in headers["content-type"]:
+                        content_type = CONTENT_JSON
+                    elif "application/javascript" in headers["content-type"]:
                         content_type = CONTENT_JSON
             else:
                 print(
