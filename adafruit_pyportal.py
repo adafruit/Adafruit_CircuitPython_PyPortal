@@ -115,6 +115,10 @@ CONTENT_JSON = const(2)
 CONTENT_IMAGE = const(3)
 
 
+class HttpError(Exception):
+    """HTTP Specific Error"""
+
+
 class Fake_Requests:
     """For faking 'requests' using a local file instead of the network."""
 
@@ -758,9 +762,24 @@ class PyPortal:
 
         self.neo_status((100, 100, 0))
         r = requests.get(url, stream=True)
+
         headers = {}
         for title, content in r.headers.items():
             headers[title.lower()] = content
+
+        if r.status_code == 200:
+            print("Reply is OK!")
+            self.neo_status((0, 0, 100))  # green = got data
+        else:
+            if self._debug:
+                if "content-length" in headers:
+                    print("Content-Length: {}".format(int(headers["content-length"])))
+                if "date" in headers:
+                    print("Date: {}".format(headers["date"]))
+            self.neo_status((100, 0, 0))  # red = http error
+            raise HttpError(
+                "Code {}: {}".format(r.status_code, r.reason.decode("utf-8"))
+            )
 
         if self._debug:
             print(headers)
@@ -938,9 +957,6 @@ class PyPortal:
                     elif "application/javascript" in headers["content-type"]:
                         content_type = CONTENT_JSON
             else:
-                print(
-                    "HTTP Error {}: {}".format(r.status_code, r.reason.decode("utf-8"))
-                )
                 if self._debug:
                     if "content-length" in headers:
                         print(
@@ -949,7 +965,9 @@ class PyPortal:
                     if "date" in headers:
                         print("Date: {}".format(headers["date"]))
                 self.neo_status((100, 0, 0))  # red = http error
-                return None
+                raise HttpError(
+                    "Code {}: {}".format(r.status_code, r.reason.decode("utf-8"))
+                )
 
         if self._debug and content_type == CONTENT_TEXT:
             print(r.text)
@@ -993,11 +1011,17 @@ class PyPortal:
                 except KeyError:
                     print(json_out)
                     raise
-        elif self._regexp_path:
+        elif content_type == CONTENT_TEXT and self._regexp_path:
             for regexp in self._regexp_path:
                 values.append(re.search(regexp, r.text).group(1))
         else:
-            values = r.text
+            if content_type == CONTENT_JSON:
+                # No path given, so return JSON as string for compatibility
+                import json  # pylint: disable=import-outside-toplevel
+
+                values = json.dumps(r.json())
+            else:
+                values = r.text
 
         if self._image_json_path:
             try:
