@@ -722,7 +722,7 @@ class PyPortal:
         try:
             response = requests.get(api_url, timeout=10)
             if response.status_code != 200:
-                raise ValueError(response.text)
+                raise RuntimeError(response.text)
             if self._debug:
                 print("Time request: ", api_url)
                 print("Time reply: ", response.text)
