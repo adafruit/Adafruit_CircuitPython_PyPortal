@@ -27,21 +27,13 @@ autodoc_mock_imports = [
     "pulseio",
     "audioio",
     "audiocore",
-    "displayio",
-    "neopixel",
     "microcontroller",
-    "adafruit_touchscreen",
-    "adafruit_bitmap_font",
-    "adafruit_display_text",
-    "adafruit_esp32spi",
     "secrets",
     "adafruit_sdcard",
     "storage",
     "sdcardio",
     "adafruit_io",
     "adafruit_cursorcontrol",
-    "adafruit_requests",
-    "terminalio",
 ]
 
 
