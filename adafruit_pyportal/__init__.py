@@ -134,13 +134,27 @@ class PyPortal(PortalBase):
     ):
 
         graphics = Graphics(
+            default_bg=default_bg,
             debug=debug,
         )
+
+        self._default_bg = default_bg
 
         if external_spi:  # If SPI Object Passed
             spi = external_spi
         else:  # Else: Make ESP32 connection
             spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
+
+        if image_json_path or image_url_path:
+            if self._debug:
+                print("Init image path")
+            if not image_position:
+                image_position = (0, 0)  # default to top corner
+            if not image_resize:
+                image_resize = (
+                    self.display.width,
+                    self.display.height,
+                )  # default to full screen
 
         network = Network(
             status_neopixel=status_neopixel,
@@ -357,11 +371,17 @@ class PyPortal(PortalBase):
             except MemoryError:
                 supervisor.reload()
 
-        filename, position = self.network.process_image(
-            json_out, self.peripherals.sd_check()
-        )
-        if filename and position is not None:
-            self.graphics.set_background(filename, position)
+        try:
+            filename, position = self.network.process_image(
+                json_out, self.peripherals.sd_check()
+            )
+            if filename and position is not None:
+                self.graphics.set_background(filename, position)
+        except ValueError as error:
+            print("Error displaying cached image. " + error.args[0])
+            if self._default_bg is not None:
+                self.graphics.set_background(self._default_bg)
+
         if content_type == CONTENT_JSON:
             values = self.network.process_json(json_out, json_path)
         elif content_type == CONTENT_TEXT:

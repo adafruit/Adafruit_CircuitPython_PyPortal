@@ -89,16 +89,6 @@ class Network(NetworkBase):
         self._image_resize = image_resize
         self._image_position = image_position
         self._image_dim_json_path = image_dim_json_path
-        if image_json_path or image_url_path:
-            if self._debug:
-                print("Init image path")
-            if not self._image_position:
-                self._image_position = (0, 0)  # default to top corner
-            if not self._image_resize:
-                self._image_resize = (
-                    self.display.width,
-                    self.display.height,
-                )  # default to full screen
 
         gc.collect()
 
@@ -160,59 +150,53 @@ class Network(NetworkBase):
             print("image dim:", iwidth, iheight)
 
         if image_url:
-            try:
-                print("original URL:", image_url)
-                if self._convert_image:
-                    if iwidth < iheight:
-                        image_url = self.image_converter_url(
-                            image_url,
-                            int(
-                                self._image_resize[1]
-                                * self._image_resize[1]
-                                / self._image_resize[0]
-                            ),
-                            self._image_resize[1],
-                        )
-                    else:
-                        image_url = self.image_converter_url(
-                            image_url, self._image_resize[0], self._image_resize[1]
-                        )
-
-                    print("convert URL:", image_url)
-                # convert image to bitmap and cache
-                # print("**not actually wgetting**")
-                filename = "/cache.bmp"
-                chunk_size = 4096  # default chunk size is 12K (for QSPI)
-                if sd_card:
-                    filename = "/sd" + filename
-                    chunk_size = 512  # current bug in big SD writes -> stick to 1 block
-                try:
-                    self.wget(image_url, filename, chunk_size=chunk_size)
-                except OSError as error:
-                    raise OSError(
-                        """\n\nNo writable filesystem found for saving datastream. Insert an SD card or set internal filesystem to be unsafe by setting 'disable_concurrent_write_protection' in the mount options in boot.py"""  # pylint: disable=line-too-long
-                    ) from error
-                except RuntimeError as error:
-                    raise RuntimeError("wget didn't write a complete file") from error
+            print("original URL:", image_url)
+            if self._convert_image:
                 if iwidth < iheight:
-                    pwidth = int(
-                        self._image_resize[1]
-                        * self._image_resize[1]
-                        / self._image_resize[0]
-                    )
-                    position = (
-                        self._image_position[0]
-                        + int((self._image_resize[0] - pwidth) / 2),
-                        self._image_position[1],
+                    image_url = self.image_converter_url(
+                        image_url,
+                        int(
+                            self._image_resize[1]
+                            * self._image_resize[1]
+                            / self._image_resize[0]
+                        ),
+                        self._image_resize[1],
                     )
                 else:
-                    position = self._image_position
+                    image_url = self.image_converter_url(
+                        image_url, self._image_resize[0], self._image_resize[1]
+                    )
 
-            except ValueError as error:
-                print("Error displaying cached image. " + error.args[0])
-                self.set_background(self._default_bg)
-            finally:
-                image_url = None
-                gc.collect()
+                print("convert URL:", image_url)
+            # convert image to bitmap and cache
+            # print("**not actually wgetting**")
+            filename = "/cache.bmp"
+            chunk_size = 4096  # default chunk size is 12K (for QSPI)
+            if sd_card:
+                filename = "/sd" + filename
+                chunk_size = 512  # current bug in big SD writes -> stick to 1 block
+            try:
+                self.wget(image_url, filename, chunk_size=chunk_size)
+            except OSError as error:
+                raise OSError(
+                    """\n\nNo writable filesystem found for saving datastream. Insert an SD card or set internal filesystem to be unsafe by setting 'disable_concurrent_write_protection' in the mount options in boot.py"""  # pylint: disable=line-too-long
+                ) from error
+            except RuntimeError as error:
+                raise RuntimeError("wget didn't write a complete file") from error
+            if iwidth < iheight:
+                pwidth = int(
+                    self._image_resize[1]
+                    * self._image_resize[1]
+                    / self._image_resize[0]
+                )
+                position = (
+                    self._image_position[0] + int((self._image_resize[0] - pwidth) / 2),
+                    self._image_position[1],
+                )
+            else:
+                position = self._image_position
+
+            image_url = None
+            gc.collect()
 
         return filename, position
