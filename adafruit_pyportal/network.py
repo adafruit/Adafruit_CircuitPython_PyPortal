@@ -136,11 +136,7 @@ class Network(NetworkBase):
             image_url = self._image_url_path
 
         if self._image_json_path:
-            try:
-                image_url = self.json_traverse(json_data, self._image_json_path)
-            except KeyError as error:
-                print("Error finding image data. '" + error.args[0] + "' not found.")
-                self.set_background(self._default_bg)
+            image_url = self.json_traverse(json_data, self._image_json_path)
 
         iwidth = 0
         iheight = 0

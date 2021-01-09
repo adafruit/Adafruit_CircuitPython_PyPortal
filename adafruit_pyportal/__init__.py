@@ -381,6 +381,9 @@ class PyPortal(PortalBase):
             print("Error displaying cached image. " + error.args[0])
             if self._default_bg is not None:
                 self.graphics.set_background(self._default_bg)
+        except KeyError as error:
+            print("Error finding image data. '" + error.args[0] + "' not found.")
+            self.set_background(self._default_bg)
 
         if content_type == CONTENT_JSON:
             values = self.network.process_json(json_out, json_path)

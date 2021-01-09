@@ -46,6 +46,7 @@ class Graphics(GraphicsBase):
         # Tracks whether we've hidden the background when we showed the QR code.
         self._qr_only = False
 
+    # pylint: disable=arguments-differ
     def qrcode(self, qr_data, *, qr_size=1, x=0, y=0, hide_background=False):
         """Display a QR code
 
@@ -64,6 +65,8 @@ class Graphics(GraphicsBase):
         if hide_background:
             self.display.show(self._qr_group)
         self._qr_only = hide_background
+
+    # pylint: enable=arguments-differ
 
     def hide_QR(self):  # pylint: disable=invalid-name
         """Clear any QR codes that are currently on the screen"""
