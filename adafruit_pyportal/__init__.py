@@ -27,8 +27,6 @@ import os
 import gc
 import time
 import board
-import busio
-import pulseio
 import terminalio
 import supervisor
 from adafruit_portalbase import PortalBase
@@ -143,7 +141,7 @@ class PyPortal(PortalBase):
         if external_spi:  # If SPI Object Passed
             spi = external_spi
         else:  # Else: Make ESP32 connection
-            spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
+            spi = board.SPI()
 
         if image_json_path or image_url_path:
             if debug:
@@ -184,20 +182,17 @@ class PyPortal(PortalBase):
             debug=debug,
         )
 
-        self.peripherals = Peripherals(spi, debug=debug)
+        self.peripherals = Peripherals(spi, display=self.display, debug=debug)
+        self.set_backlight = self.peripherals.set_backlight
+        self.sd_check = self.peripherals.sd_check
+        self.play_file = self.peripherals.play_file
 
-        try:
-            if hasattr(board, "TFT_BACKLIGHT"):
-                self._backlight = pulseio.PWMOut(
-                    board.TFT_BACKLIGHT
-                )  # pylint: disable=no-member
-            elif hasattr(board, "TFT_LITE"):
-                self._backlight = pulseio.PWMOut(
-                    board.TFT_LITE
-                )  # pylint: disable=no-member
-        except ValueError:
-            self._backlight = None
-        self.set_backlight(1.0)  # turn on backlight
+        if hasattr(self.peripherals, "touchscreen"):
+            self.touchscreen = self.peripherals.touchscreen
+        if hasattr(self.peripherals, "mouse_cursor"):
+            self.mouse_cursor = self.peripherals.mouse_cursor
+        if hasattr(self.peripherals, "cursor"):
+            self.cursor = self.peripherals.cursor
 
         # show thank you and bootup file if available
         for bootscreen in ("/thankyou.bmp", "/pyportal_startup.bmp"):
@@ -292,34 +287,6 @@ class PyPortal(PortalBase):
             is_data=False,
         )
         self.set_text(caption_text, index)
-
-    def play_file(self, file_name, wait_to_finish=True):
-        """Play a wav file.
-
-        :param str file_name: The name of the wav file to play on the speaker.
-
-        """
-        self.peripherals.play_file(file_name, wait_to_finish)
-
-    def set_backlight(self, val):
-        """Adjust the TFT backlight.
-
-        :param val: The backlight brightness. Use a value between ``0`` and ``1``, where ``0`` is
-                    off, and ``1`` is 100% brightness.
-
-        """
-        val = max(0, min(1.0, val))
-        if self._backlight:
-            self._backlight.duty_cycle = int(val * 65535)
-        else:
-            self.display.auto_brightness = False
-            self.display.brightness = val
-
-    def sd_check(self):
-        """Returns True if there is an SD card preset and False
-        if there is no SD card.
-        """
-        return self.peripherals.sd_check()
 
     def image_converter_url(self, image_url, width, height, color_depth=16):
         """Generate a converted image url from the url passed in,

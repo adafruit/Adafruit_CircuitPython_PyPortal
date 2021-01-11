@@ -24,8 +24,10 @@ Implementation Notes
 
 """
 
+import gc
 import board
 from digitalio import DigitalInOut
+import pulseio
 import audioio
 import audiocore
 import storage
@@ -47,10 +49,12 @@ class Peripherals:
     """Peripherals Helper Class for the PyPortal Library"""
 
     # pylint: disable=too-many-instance-attributes, too-many-locals, too-many-branches, too-many-statements
-    def __init__(self, spi, debug=False):
+    def __init__(self, spi, display, debug=False):
         # Speaker Enable
         self._speaker_enable = DigitalInOut(board.SPEAKER_ENABLE)
         self._speaker_enable.switch_to_output(False)
+
+        self._display = display
 
         if hasattr(board, "AUDIO_OUT"):
             self.audio = audioio.AudioOut(board.AUDIO_OUT)
@@ -72,6 +76,68 @@ class Peripherals:
             storage.mount(vfs, "/sd")
         except OSError as error:
             print("No SD card found:", error)
+
+        try:
+            if hasattr(board, "TFT_BACKLIGHT"):
+                self._backlight = pulseio.PWMOut(
+                    board.TFT_BACKLIGHT
+                )  # pylint: disable=no-member
+            elif hasattr(board, "TFT_LITE"):
+                self._backlight = pulseio.PWMOut(
+                    board.TFT_LITE
+                )  # pylint: disable=no-member
+        except ValueError:
+            self._backlight = None
+        self.set_backlight(1.0)  # turn on backlight
+
+        if hasattr(board, "TOUCH_XL"):
+            import adafruit_touchscreen
+
+            if debug:
+                print("Init touchscreen")
+            # pylint: disable=no-member
+            self.touchscreen = adafruit_touchscreen.Touchscreen(
+                board.TOUCH_XL,
+                board.TOUCH_XR,
+                board.TOUCH_YD,
+                board.TOUCH_YU,
+                calibration=((5200, 59000), (5800, 57000)),
+                size=(board.DISPLAY.width, board.DISPLAY.height),
+            )
+            # pylint: enable=no-member
+
+            self.set_backlight(1.0)  # turn on backlight
+        elif hasattr(board, "BUTTON_CLOCK"):
+            from adafruit_cursorcontrol.cursorcontrol import Cursor
+            from adafruit_cursorcontrol.cursorcontrol_cursormanager import CursorManager
+
+            if debug:
+                print("Init cursor")
+            self.mouse_cursor = Cursor(
+                board.DISPLAY, display_group=self.splash, cursor_speed=8
+            )
+            self.mouse_cursor.hide()
+            self.cursor = CursorManager(self.mouse_cursor)
+        else:
+            raise AttributeError(
+                "PyPortal module requires either a touchscreen or gamepad."
+            )
+
+        gc.collect()
+
+    def set_backlight(self, val):
+        """Adjust the TFT backlight.
+
+        :param val: The backlight brightness. Use a value between ``0`` and ``1``, where ``0`` is
+                    off, and ``1`` is 100% brightness.
+
+        """
+        val = max(0, min(1.0, val))
+        if self._backlight:
+            self._backlight.duty_cycle = int(val * 65535)
+        else:
+            self._display.auto_brightness = False
+            self._display.brightness = val
 
     def play_file(self, file_name, wait_to_finish=True):
         """Play a wav file.
