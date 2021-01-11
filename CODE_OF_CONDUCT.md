@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2014 Coraline Ada Ehmke
+SPDX-FileCopyrightText: 2019 Kattni Rembor for Adafruit Industries
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
 # Adafruit Community Code of Conduct
 
 ## Our Pledge
@@ -43,7 +49,7 @@ Examples of unacceptable behavior by participants include:
 
 The goal of the standards and moderation guidelines outlined here is to build
 and maintain a respectful community. We ask that you don’t just aim to be
-"technically unimpeachable", but rather try to be your best self. 
+"technically unimpeachable", but rather try to be your best self.
 
 We value many things beyond technical expertise, including collaboration and
 supporting others within our community. Providing a positive experience for
@@ -74,9 +80,9 @@ You may report in the following ways:
 In any situation, you may send an email to <support@adafruit.com>.
 
 On the Adafruit Discord, you may send an open message from any channel
-to all Community Moderators by tagging @community moderators. You may 
-also send an open message from any channel, or a direct message to 
-@kattni#1507, @tannewt#4653, @Dan Halbert#1614, @cater#2442, 
+to all Community Moderators by tagging @community moderators. You may
+also send an open message from any channel, or a direct message to
+@kattni#1507, @tannewt#4653, @danh#1614, @cater#2442,
 @sommersoft#0222, @Mr. Certainly#0472 or @Andon#8175.
 
 Email and direct message reports will be kept confidential.
@@ -117,7 +123,7 @@ accordingly.
 
 ## Attribution
 
-This Code of Conduct is adapted from the [Contributor Covenant][homepage],
+This Code of Conduct is adapted from the [Contributor Covenant],
 version 1.4, available at
 <https://www.contributor-covenant.org/version/1/4/code-of-conduct.html>,
 and the [Rust Code of Conduct](https://www.rust-lang.org/en-US/conduct.html).
@@ -127,3 +133,5 @@ Conduct, please contact the maintainers of those projects for enforcement.
 If you wish to use this code of conduct for your own project, consider
 explicitly mentioning your moderation policy or making a copy with your
 own moderation policy so as to avoid confusion.
+
+[Contributor Covenant]: https://www.contributor-covenant.org

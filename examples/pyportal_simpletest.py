@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2017 Scott Shawcroft, written for Adafruit Industries
+#
+# SPDX-License-Identifier: MIT
+
 # NOTE: Make sure you've created your secrets.py file before running this example
 # https://learn.adafruit.com/adafruit-pyportal/internet-connect#whats-a-secrets-file-17-2
 import board
