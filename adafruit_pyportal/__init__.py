@@ -146,7 +146,7 @@ class PyPortal(PortalBase):
             spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 
         if image_json_path or image_url_path:
-            if self._debug:
+            if debug:
                 print("Init image path")
             if not image_position:
                 image_position = (0, 0)  # default to top corner
