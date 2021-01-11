@@ -49,7 +49,7 @@ class Peripherals:
     """Peripherals Helper Class for the PyPortal Library"""
 
     # pylint: disable=too-many-instance-attributes, too-many-locals, too-many-branches, too-many-statements
-    def __init__(self, spi, display, debug=False):
+    def __init__(self, spi, display, splash_group, debug=False):
         # Speaker Enable
         self._speaker_enable = DigitalInOut(board.SPEAKER_ENABLE)
         self._speaker_enable.switch_to_output(False)
@@ -89,7 +89,7 @@ class Peripherals:
         except ValueError:
             self._backlight = None
         self.set_backlight(1.0)  # turn on backlight
-
+        # pylint: disable=import-outside-toplevel
         if hasattr(board, "TOUCH_XL"):
             import adafruit_touchscreen
 
@@ -114,7 +114,7 @@ class Peripherals:
             if debug:
                 print("Init cursor")
             self.mouse_cursor = Cursor(
-                board.DISPLAY, display_group=self.splash, cursor_speed=8
+                board.DISPLAY, display_group=splash_group, cursor_speed=8
             )
             self.mouse_cursor.hide()
             self.cursor = CursorManager(self.mouse_cursor)
@@ -122,6 +122,7 @@ class Peripherals:
             raise AttributeError(
                 "PyPortal module requires either a touchscreen or gamepad."
             )
+        # pylint: enable=import-outside-toplevel
 
         gc.collect()
 

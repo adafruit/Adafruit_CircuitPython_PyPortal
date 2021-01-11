@@ -182,10 +182,20 @@ class PyPortal(PortalBase):
             debug=debug,
         )
 
-        self.peripherals = Peripherals(spi, display=self.display, debug=debug)
+        # Convenience Shortcuts for compatibility
+        self.peripherals = Peripherals(
+            spi, display=self.display, splash_group=self.splash, debug=debug
+        )
         self.set_backlight = self.peripherals.set_backlight
         self.sd_check = self.peripherals.sd_check
         self.play_file = self.peripherals.play_file
+
+        self.image_converter_url = self.network.image_converter_url
+        self.wget = self.network.wget
+        # pylint: disable=invalid-name
+        self.show_QR = self.graphics.qrcode
+        self.hide_QR = self.graphics.hide_QR
+        # pylint: enable=invalid-name
 
         if hasattr(self.peripherals, "touchscreen"):
             self.touchscreen = self.peripherals.touchscreen
@@ -288,22 +298,6 @@ class PyPortal(PortalBase):
         )
         self.set_text(caption_text, index)
 
-    def image_converter_url(self, image_url, width, height, color_depth=16):
-        """Generate a converted image url from the url passed in,
-        with the given width and height. aio_username and aio_key must be
-        set in secrets."""
-        return self.network.image_converter_url(image_url, width, height, color_depth)
-
-    def wget(self, url, filename, *, chunk_size=12000):
-        """Download a url and save to filename location, like the command wget.
-
-        :param url: The URL from which to obtain the data.
-        :param filename: The name of the file to save the data to.
-        :param chunk_size: how much data to read/write at a time.
-
-        """
-        return self.network.wget(url, filename, chunk_size=chunk_size)
-
     def fetch(self, refresh_url=None, timeout=10):
         """Fetch data from the url we initialized with, perfom any parsing,
         and display text or graphics. This function does pretty much everything
@@ -368,27 +362,3 @@ class PyPortal(PortalBase):
         gc.collect()
 
         return values
-
-    def show_QR(
-        self, qr_data, *, qr_size=1, x=0, y=0, hide_background=False
-    ):  # pylint: disable=invalid-name
-        """Display a QR code on the TFT
-
-        :param qr_data: The data for the QR code.
-        :param int qr_size: The scale of the QR code.
-        :param x: The x position of upper left corner of the QR code on the display.
-        :param y: The y position of upper left corner of the QR code on the display.
-        :param hide_background: Show the QR code on a black background if True.
-
-        """
-        self.graphics.qrcode(
-            qr_data,
-            qr_size=qr_size,
-            x=x,
-            y=y,
-            hide_background=hide_background,
-        )
-
-    def hide_QR(self):  # pylint: disable=invalid-name
-        """Clear any QR codes that are currently on the screen"""
-        self.graphics.hide_qrcode()
