@@ -73,7 +73,7 @@ class Network(NetworkBase):
         image_resize=None,
         image_position=None,
         image_dim_json_path=None,
-        secrets_data = None,
+        secrets_data=None,
     ):
         wifi = WiFi(status_neopixel=status_neopixel, esp=esp, external_spi=external_spi)
 
