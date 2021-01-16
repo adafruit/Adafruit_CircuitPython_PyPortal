@@ -128,7 +128,8 @@ class PyPortal(PortalBase):
         success_callback=None,
         esp=None,
         external_spi=None,
-        debug=False
+        debug=False,
+        secrets_data=None,
     ):
 
         graphics = Graphics(
@@ -166,6 +167,7 @@ class PyPortal(PortalBase):
             image_position=image_position,
             image_dim_json_path=image_dim_json_path,
             debug=debug,
+            secrets_data = secrets_data
         )
 
         self.url = url

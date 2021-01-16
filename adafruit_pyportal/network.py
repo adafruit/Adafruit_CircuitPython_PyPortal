@@ -28,7 +28,6 @@ import gc
 # pylint: disable=unused-import
 from adafruit_portalbase.network import (
     NetworkBase,
-    secrets,
     CONTENT_JSON,
     CONTENT_TEXT,
 )
@@ -74,6 +73,7 @@ class Network(NetworkBase):
         image_resize=None,
         image_position=None,
         image_dim_json_path=None,
+        secrets_data = None,
     ):
         wifi = WiFi(status_neopixel=status_neopixel, esp=esp, external_spi=external_spi)
 
@@ -81,6 +81,7 @@ class Network(NetworkBase):
             wifi,
             extract_values=extract_values,
             debug=debug,
+            secrets_data=secrets_data,
         )
 
         self._convert_image = convert_image
@@ -103,8 +104,8 @@ class Network(NetworkBase):
         with the given width and height. aio_username and aio_key must be
         set in secrets."""
         try:
-            aio_username = secrets["aio_username"]
-            aio_key = secrets["aio_key"]
+            aio_username = self._secrets["aio_username"]
+            aio_key = self._secrets["aio_key"]
         except KeyError as error:
             raise KeyError(
                 "\n\nOur image converter service require a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'"  # pylint: disable=line-too-long
