@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+# SPDX-FileCopyrightText: 2017 Scott Shawcroft, written for Adafruit Industries
+#
+# SPDX-License-Identifier: MIT
+
 import os
 import sys
 
@@ -26,19 +30,14 @@ autodoc_mock_imports = [
     "supervisor",
     "pulseio",
     "audioio",
-    "displayio",
-    "neopixel",
+    "audiocore",
     "microcontroller",
-    "adafruit_touchscreen",
-    "adafruit_bitmap_font",
-    "adafruit_display_text",
-    "adafruit_esp32spi",
     "secrets",
     "adafruit_sdcard",
     "storage",
+    "sdcardio",
     "adafruit_io",
     "adafruit_cursorcontrol",
-    "adafruit_requests",
 ]
 
 
