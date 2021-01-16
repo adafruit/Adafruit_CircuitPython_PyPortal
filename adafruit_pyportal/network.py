@@ -56,6 +56,18 @@ class Network(NetworkBase):
     :param bool extract_values: If true, single-length fetched values are automatically extracted
                                 from lists and tuples. Defaults to ``True``.
     :param debug: Turn on debug print outs. Defaults to False.
+    :param convert_image: Determine whether or not to use the AdafruitIO image converter service.
+                          Set as False if your image is already resized. Defaults to True.
+    :param image_url_path: The HTTP traversal path for a background image to display.
+                             Defaults to ``None``.
+    :param image_json_path: The JSON traversal path for a background image to display. Defaults to
+                            ``None``.
+    :param image_resize: What size to resize the image we got from the json_path, make this a tuple
+                         of the width and height you want. Defaults to ``None``.
+    :param image_position: The position of the image on the display as an (x, y) tuple. Defaults to
+                           ``None``.
+    :param image_dim_json_path: The JSON traversal path for the original dimensions of image tuple.
+                                Used with fetch(). Defaults to ``None``.
 
     """
 
