@@ -90,7 +90,7 @@ class Network(NetworkBase):
         self._image_resize = image_resize
         self._image_position = image_position
         self._image_dim_json_path = image_dim_json_path
-
+        self._secrets = secrets_data
         gc.collect()
 
     @property
@@ -98,8 +98,7 @@ class Network(NetworkBase):
         """Return the IP Address nicely formatted"""
         return self._wifi.esp.pretty_ip(self._wifi.esp.ip_address)
 
-    @staticmethod
-    def image_converter_url(image_url, width, height, color_depth=16):
+    def image_converter_url(self, image_url, width, height, color_depth=16):
         """Generate a converted image url from the url passed in,
         with the given width and height. aio_username and aio_key must be
         set in secrets."""
