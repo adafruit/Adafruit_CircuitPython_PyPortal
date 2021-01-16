@@ -135,6 +135,4 @@ explicitly mentioning your moderation policy or making a copy with your
 own moderation policy so as to avoid confusion.
 
 
-## some add text
-=======
 [Contributor Covenant]: https://www.contributor-covenant.org
