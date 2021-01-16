@@ -28,7 +28,6 @@ import gc
 # pylint: disable=unused-import
 from adafruit_portalbase.network import (
     NetworkBase,
-    secrets,
     CONTENT_JSON,
     CONTENT_TEXT,
 )
@@ -74,6 +73,7 @@ class Network(NetworkBase):
         image_resize=None,
         image_position=None,
         image_dim_json_path=None,
+        secrets_data=None,
     ):
         wifi = WiFi(status_neopixel=status_neopixel, esp=esp, external_spi=external_spi)
 
@@ -81,6 +81,7 @@ class Network(NetworkBase):
             wifi,
             extract_values=extract_values,
             debug=debug,
+            secrets_data=secrets_data,
         )
 
         self._convert_image = convert_image
@@ -89,7 +90,6 @@ class Network(NetworkBase):
         self._image_resize = image_resize
         self._image_position = image_position
         self._image_dim_json_path = image_dim_json_path
-
         gc.collect()
 
     @property
@@ -97,14 +97,13 @@ class Network(NetworkBase):
         """Return the IP Address nicely formatted"""
         return self._wifi.esp.pretty_ip(self._wifi.esp.ip_address)
 
-    @staticmethod
-    def image_converter_url(image_url, width, height, color_depth=16):
+    def image_converter_url(self, image_url, width, height, color_depth=16):
         """Generate a converted image url from the url passed in,
         with the given width and height. aio_username and aio_key must be
         set in secrets."""
         try:
-            aio_username = secrets["aio_username"]
-            aio_key = secrets["aio_key"]
+            aio_username = self._secrets["aio_username"]
+            aio_key = self._secrets["aio_key"]
         except KeyError as error:
             raise KeyError(
                 "\n\nOur image converter service require a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'"  # pylint: disable=line-too-long
