@@ -134,5 +134,4 @@ If you wish to use this code of conduct for your own project, consider
 explicitly mentioning your moderation policy or making a copy with your
 own moderation policy so as to avoid confusion.
 
-
 [Contributor Covenant]: https://www.contributor-covenant.org
