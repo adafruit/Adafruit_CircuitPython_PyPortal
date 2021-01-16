@@ -90,7 +90,6 @@ class Network(NetworkBase):
         self._image_resize = image_resize
         self._image_position = image_position
         self._image_dim_json_path = image_dim_json_path
-        self._secrets = secrets_data
         gc.collect()
 
     @property
