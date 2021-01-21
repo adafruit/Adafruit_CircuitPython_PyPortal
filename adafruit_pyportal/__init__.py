@@ -357,4 +357,7 @@ class PyPortal(PortalBase):
         response = None
         gc.collect()
 
+        if len(values) == 1:
+            values = values[0]
+
         return values
