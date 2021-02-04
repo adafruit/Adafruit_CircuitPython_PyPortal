@@ -27,7 +27,7 @@ Implementation Notes
 import gc
 import board
 from digitalio import DigitalInOut
-import pulseio
+import pwmio
 import audioio
 import audiocore
 import storage
@@ -79,11 +79,11 @@ class Peripherals:
 
         try:
             if hasattr(board, "TFT_BACKLIGHT"):
-                self._backlight = pulseio.PWMOut(
+                self._backlight = pwmio.PWMOut(
                     board.TFT_BACKLIGHT
                 )  # pylint: disable=no-member
             elif hasattr(board, "TFT_LITE"):
-                self._backlight = pulseio.PWMOut(
+                self._backlight = pwmio.PWMOut(
                     board.TFT_LITE
                 )  # pylint: disable=no-member
         except ValueError:
