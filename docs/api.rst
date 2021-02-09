@@ -6,3 +6,15 @@
 
 .. automodule:: adafruit_pyportal
    :members:
+
+.. automodule:: adafruit_pyportal.graphics
+   :members:
+
+.. automodule:: adafruit_pyportal.network
+   :members:
+
+.. automodule:: adafruit_pyportal.peripherals
+   :members:
+
+.. automodule:: adafruit_pyportal.wifi
+   :members:
