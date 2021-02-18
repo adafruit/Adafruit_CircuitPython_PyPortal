@@ -303,7 +303,7 @@ class PyPortal(PortalBase):
         if refresh_url:
             self.url = refresh_url
 
-        response = self.network.fetch(self.url, timeout=timeout)
+        response = self.network.fetch(self.url, headers=self._headers, timeout=timeout)
 
         json_out = None
         content_type = self.network.check_response(response)
