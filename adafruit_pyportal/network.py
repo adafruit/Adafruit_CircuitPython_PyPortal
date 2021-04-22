@@ -24,6 +24,8 @@ Implementation Notes
 """
 
 import gc
+import neopixel
+from adafruit_portalbase.wifi_coprocessor import WiFi
 
 # pylint: disable=unused-import
 from adafruit_portalbase.network import (
@@ -33,7 +35,6 @@ from adafruit_portalbase.network import (
 )
 
 # pylint: enable=unused-import
-from adafruit_pyportal.wifi import WiFi
 
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PyPortal.git"
@@ -87,7 +88,11 @@ class Network(NetworkBase):
         image_dim_json_path=None,
         secrets_data=None,
     ):
-        wifi = WiFi(status_neopixel=status_neopixel, esp=esp, external_spi=external_spi)
+        if status_neopixel:
+            status_led = neopixel.NeoPixel(status_neopixel, 1, brightness=0.2)
+        else:
+            status_led = None
+        wifi = WiFi(status_led=status_led, esp=esp, external_spi=external_spi)
 
         super().__init__(
             wifi,
