@@ -15,6 +15,3 @@
 
 .. automodule:: adafruit_pyportal.peripherals
    :members:
-
-.. automodule:: adafruit_pyportal.wifi
-   :members:
