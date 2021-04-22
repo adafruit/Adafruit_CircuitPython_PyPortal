@@ -23,6 +23,8 @@ Table of Contents
 .. toctree::
     :caption: Tutorials
 
+    Adafruit PyPortal Learning Guide <https://learn.adafruit.com/adafruit-pyportal>
+
 .. toctree::
     :caption: Related Products
 
