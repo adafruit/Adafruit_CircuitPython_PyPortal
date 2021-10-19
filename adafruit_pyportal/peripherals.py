@@ -161,6 +161,7 @@ class Peripherals:
 
     def stop_play(self):
         """Stops playing a wav file."""
+        self.audio.stop()
         if self.wavfile is not None:
             self.wavfile.close()
         self._speaker_enable.value = False
