@@ -62,6 +62,7 @@ class Peripherals:
             self.audio = audioio.AudioOut(board.SPEAKER)
         else:
             raise AttributeError("Board does not have a builtin speaker!")
+        self.wavfile = None
 
         if debug:
             print("Init SD Card")
@@ -144,17 +145,25 @@ class Peripherals:
         """Play a wav file.
 
         :param str file_name: The name of the wav file to play on the speaker.
+        :param bool wait_to_finish: flag to determine if this is a blocking call
 
         """
-        wavfile = open(file_name, "rb")
-        wavedata = audiocore.WaveFile(wavfile)
+        self.wavfile = open(file_name, "rb")
+        wavedata = audiocore.WaveFile(self.wavfile)
         self._speaker_enable.value = True
         self.audio.play(wavedata)
         if not wait_to_finish:
             return
         while self.audio.playing:
             pass
-        wavfile.close()
+        self.wavfile.close()
+        self._speaker_enable.value = False
+
+    def stop_play(self):
+        """Stops playing a wav file.
+        """
+        if self.wavfile is not None:
+            self.wavfile.close()
         self._speaker_enable.value = False
 
     def sd_check(self):
