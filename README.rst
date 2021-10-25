@@ -32,6 +32,11 @@ Usage Example
 
 See examples/pyportal_simpletest.py
 
+Documentation
+=============
+
+API documentation for this library can be found on `Read the Docs <https://circuitpython.readthedocs.io/projects/pyportal/en/latest/>`_.
+
 Contributing
 ============
 
