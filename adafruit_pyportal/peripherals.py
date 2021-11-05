@@ -146,15 +146,14 @@ class Peripherals:
         :param str file_name: The name of the wav file to play on the speaker.
 
         """
-        wavfile = open(file_name, "rb")
-        wavedata = audiocore.WaveFile(wavfile)
-        self._speaker_enable.value = True
-        self.audio.play(wavedata)
-        if not wait_to_finish:
-            return
-        while self.audio.playing:
-            pass
-        wavfile.close()
+        with open(file_name, "rb") as wavfile:
+            wavedata = audiocore.WaveFile(wavfile)
+            self._speaker_enable.value = True
+            self.audio.play(wavedata)
+            if not wait_to_finish:
+                return
+            while self.audio.playing:
+                pass
         self._speaker_enable.value = False
 
     def sd_check(self):
