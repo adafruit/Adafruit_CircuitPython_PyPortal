@@ -148,6 +148,9 @@ class Peripherals:
         :param bool wait_to_finish: flag to determine if this is a blocking call
 
         """
+
+        # pylint: disable=consider-using-with
+        # can't use `with` because we need wavefile to remain open after return
         self.wavfile = open(file_name, "rb")
         wavedata = audiocore.WaveFile(self.wavfile)
         self._speaker_enable.value = True
