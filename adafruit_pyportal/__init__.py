@@ -295,7 +295,7 @@ class PyPortal(PortalBase):
         )
         self.set_text(caption_text, index)
 
-    def fetch(self, refresh_url=None, timeout=10):
+    def fetch(self, refresh_url=None, timeout=10, force_content_type=None):
         """Fetch data from the url we initialized with, perfom any parsing,
         and display text or graphics. This function does pretty much everything
         Optionally update the URL
@@ -307,7 +307,10 @@ class PyPortal(PortalBase):
         response = self.network.fetch(self.url, headers=self._headers, timeout=timeout)
 
         json_out = None
-        content_type = self.network.check_response(response)
+        if not force_content_type:
+            content_type = self.network.check_response(response)
+        else:
+            content_type = force_content_type
         json_path = self._json_path
 
         if content_type == CONTENT_JSON:
