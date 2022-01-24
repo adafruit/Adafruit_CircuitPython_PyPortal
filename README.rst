@@ -2,7 +2,7 @@ Introduction
 ============
 
 .. image:: https://readthedocs.org/projects/adafruit-circuitpython-pyportal/badge/?version=latest
-    :target: https://circuitpython.readthedocs.io/projects/pyportal/en/latest/
+    :target: https://docs.circuitpython.org/projects/pyportal/en/latest/
     :alt: Documentation Status
 
 .. image:: https://img.shields.io/discord/327254708534116352.svg
@@ -35,7 +35,7 @@ See examples/pyportal_simpletest.py
 Documentation
 =============
 
-API documentation for this library can be found on `Read the Docs <https://circuitpython.readthedocs.io/projects/pyportal/en/latest/>`_.
+API documentation for this library can be found on `Read the Docs <https://docs.circuitpython.org/projects/pyportal/en/latest/>`_.
 
 Contributing
 ============
