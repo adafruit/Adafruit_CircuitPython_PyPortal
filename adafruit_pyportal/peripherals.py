@@ -138,7 +138,10 @@ class Peripherals:
         if self._backlight:
             self._backlight.duty_cycle = int(val * 65535)
         else:
-            self._display.auto_brightness = False
+            try:
+                self._display.auto_brightness = False
+            except AttributeError:
+                pass
             self._display.brightness = val
 
     def play_file(self, file_name, wait_to_finish=True):
