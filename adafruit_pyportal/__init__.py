@@ -34,7 +34,7 @@ from adafruit_pyportal.network import Network, CONTENT_JSON, CONTENT_TEXT
 from adafruit_pyportal.graphics import Graphics
 from adafruit_pyportal.peripherals import Peripherals
 
-__version__ = "0.0.0-auto.0"
+__version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PyPortal.git"
 
 

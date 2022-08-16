@@ -36,7 +36,7 @@ from adafruit_portalbase.network import (
 
 # pylint: enable=unused-import
 
-__version__ = "0.0.0-auto.0"
+__version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PyPortal.git"
 
 # you'll need to pass in an io username, width, height, format (bit depth), io key, and then url!
