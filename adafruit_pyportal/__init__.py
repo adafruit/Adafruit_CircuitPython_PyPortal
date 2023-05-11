@@ -125,7 +125,6 @@ class PyPortal(PortalBase):
         debug=False,
         secrets_data=None,
     ):
-
         graphics = Graphics(
             default_bg=default_bg,
             debug=debug,

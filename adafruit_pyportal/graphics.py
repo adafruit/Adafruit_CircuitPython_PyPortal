@@ -41,7 +41,6 @@ class Graphics(GraphicsBase):
 
     # pylint: disable=too-few-public-methods
     def __init__(self, *, default_bg=None, debug=False):
-
         super().__init__(board.DISPLAY, default_bg=default_bg, debug=debug)
         # Tracks whether we've hidden the background when we showed the QR code.
         self._qr_only = False
