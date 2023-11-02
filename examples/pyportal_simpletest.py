@@ -14,7 +14,7 @@ TEXT_URL = "http://wifitest.adafruit.com/testwifi/index.html"
 pyportal = PyPortal(url=TEXT_URL, status_neopixel=board.NEOPIXEL)
 
 # Set display to show REPL
-board.DISPLAY.show(None)
+board.DISPLAY.root_group = None
 
 # Go get that data
 print("Fetching text from", TEXT_URL)
