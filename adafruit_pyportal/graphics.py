@@ -62,7 +62,7 @@ class Graphics(GraphicsBase):
             y=y,
         )
         if hide_background:
-            self.display.show(self._qr_group)
+            self.display.root_group = self._qr_group
         self._qr_only = hide_background
 
     # pylint: enable=arguments-differ
@@ -71,7 +71,7 @@ class Graphics(GraphicsBase):
         """Clear any QR codes that are currently on the screen"""
 
         if self._qr_only:
-            self.display.show(self.splash)
+            self.display.root_group = self.splash
         else:
             try:
                 self._qr_group.pop()
