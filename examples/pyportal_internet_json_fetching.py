@@ -9,8 +9,9 @@ Example to illustrate the device capability to get json data
 # https://learn.adafruit.com/adafruit-pyportal/internet-connect#whats-a-secrets-file-17-2
 import board
 from digitalio import DigitalInOut
-import adafruit_requests as requests
-import adafruit_esp32spi.adafruit_esp32spi_socket as socket
+import adafruit_connection_manager
+import adafruit_requests
+import adafruit_esp32spi.adafruit_esp32spi_socket as pool
 from adafruit_esp32spi import adafruit_esp32spi
 
 
@@ -35,7 +36,8 @@ esp32_reset = DigitalInOut(board.ESP_RESET)
 # SPI Configuration
 spi = board.SPI()
 esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready, esp32_reset)
-requests.set_socket(socket, esp)
+ssl_context = adafruit_connection_manager.create_fake_ssl_context(pool, esp)
+requests = adafruit_requests.Session(pool, ssl_context)
 
 if esp.status == adafruit_esp32spi.WL_IDLE_STATUS:
     print("ESP32 found and in idle mode")
