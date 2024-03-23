@@ -39,14 +39,12 @@ class Graphics(GraphicsBase):
 
     """
 
-    # pylint: disable=too-few-public-methods
     def __init__(self, *, default_bg=None, debug=False):
         super().__init__(board.DISPLAY, default_bg=default_bg, debug=debug)
         # Tracks whether we've hidden the background when we showed the QR code.
         self._qr_only = False
 
-    # pylint: disable=arguments-differ
-    def qrcode(self, qr_data, *, qr_size=1, x=0, y=0, hide_background=False):
+    def qrcode(self, qr_data, *, qr_size=1, x=0, y=0, hide_background=False):  # noqa: PLR0913 Too many arguments in function definition
         """Display a QR code
 
         :param qr_data: The data for the QR code.
@@ -65,9 +63,7 @@ class Graphics(GraphicsBase):
             self.display.root_group = self._qr_group
         self._qr_only = hide_background
 
-    # pylint: enable=arguments-differ
-
-    def hide_QR(self):  # pylint: disable=invalid-name
+    def hide_QR(self):
         """Clear any QR codes that are currently on the screen"""
 
         if self._qr_only:

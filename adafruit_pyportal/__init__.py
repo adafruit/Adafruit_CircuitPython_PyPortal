@@ -93,8 +93,7 @@ class PyPortal(PortalBase):
 
     """
 
-    # pylint: disable=too-many-instance-attributes, too-many-locals, too-many-branches, too-many-statements
-    def __init__(
+    def __init__(  # noqa: PLR0912,PLR0913,PLR0915 Too many branches,Too many arguments in function definition,Too many statements
         self,
         *,
         url=None,
@@ -190,10 +189,8 @@ class PyPortal(PortalBase):
 
         self.image_converter_url = self.network.image_converter_url
         self.wget = self.network.wget
-        # pylint: disable=invalid-name
         self.show_QR = self.graphics.qrcode
         self.hide_QR = self.graphics.hide_QR
-        # pylint: enable=invalid-name
 
         if hasattr(self.peripherals, "touchscreen"):
             self.touchscreen = self.peripherals.touchscreen
@@ -273,7 +270,6 @@ class PyPortal(PortalBase):
         gc.collect()
 
     def set_caption(self, caption_text, caption_position, caption_color):
-        # pylint: disable=line-too-long
         """A caption. Requires setting ``caption_font`` in init!
 
         :param caption_text: The text of the caption.
@@ -281,7 +277,6 @@ class PyPortal(PortalBase):
         :param caption_color: The color of your caption text. Must be a hex value, e.g.
                               ``0x808000``.
         """
-        # pylint: enable=line-too-long
         if self._debug:
             print("Setting caption to", caption_text)
 
@@ -296,7 +291,7 @@ class PyPortal(PortalBase):
         )
         self.set_text(caption_text, index)
 
-    def fetch(self, refresh_url=None, timeout=10, force_content_type=None):
+    def fetch(self, refresh_url=None, timeout=10, force_content_type=None):  # noqa: PLR0912 Too many branches
         """Fetch data from the url we initialized with, perfom any parsing,
         and display text or graphics. This function does pretty much everything
         Optionally update the URL

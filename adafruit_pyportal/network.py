@@ -26,16 +26,12 @@ Implementation Notes
 import gc
 
 import neopixel
-
-# pylint: disable=unused-import
 from adafruit_portalbase.network import (
     CONTENT_JSON,
     CONTENT_TEXT,
     NetworkBase,
 )
 from adafruit_portalbase.wifi_coprocessor import WiFi
-
-# pylint: enable=unused-import
 
 __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PyPortal.git"
@@ -73,7 +69,7 @@ class Network(NetworkBase):
 
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 Too many arguments in function definition
         self,
         *,
         status_neopixel=None,
@@ -124,7 +120,7 @@ class Network(NetworkBase):
             aio_key = self._get_setting("AIO_KEY")
         except KeyError as error:
             raise KeyError(
-                "\n\nOur image converter service require a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'"  # pylint: disable=line-too-long
+                "\n\nOur image converter service require a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'"
             ) from error
 
         return IMAGE_CONVERTER_SERVICE % (
@@ -136,8 +132,7 @@ class Network(NetworkBase):
             image_url,
         )
 
-    # pylint: disable=too-many-branches, too-many-statements
-    def process_image(self, json_data, sd_card=False):
+    def process_image(self, json_data, sd_card=False):  # noqa: PLR0912 Too many branches
         """
         Process image content
 
@@ -192,7 +187,7 @@ class Network(NetworkBase):
                 self.wget(image_url, filename, chunk_size=chunk_size)
             except OSError as error:
                 raise OSError(
-                    """\n\nNo writable filesystem found for saving datastream. Insert an SD card or set internal filesystem to be unsafe by setting 'disable_concurrent_write_protection' in the mount options in boot.py"""  # pylint: disable=line-too-long
+                    """\n\nNo writable filesystem found for saving datastream. Insert an SD card or set internal filesystem to be unsafe by setting 'disable_concurrent_write_protection' in the mount options in boot.py"""
                 ) from error
             except RuntimeError as error:
                 raise RuntimeError("wget didn't write a complete file") from error
