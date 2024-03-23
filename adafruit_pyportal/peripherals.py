@@ -25,12 +25,13 @@ Implementation Notes
 """
 
 import gc
-import board
-from digitalio import DigitalInOut
-import pwmio
-import audioio
+
 import audiocore
+import audioio
+import board
+import pwmio
 import storage
+from digitalio import DigitalInOut
 
 try:
     import sdcardio

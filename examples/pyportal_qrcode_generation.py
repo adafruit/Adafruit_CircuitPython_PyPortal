@@ -6,6 +6,7 @@ This example shows a web address QR in the display
 """
 
 import board
+
 from adafruit_pyportal.graphics import Graphics
 
 # Set display to show

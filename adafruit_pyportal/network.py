@@ -24,15 +24,16 @@ Implementation Notes
 """
 
 import gc
+
 import neopixel
-from adafruit_portalbase.wifi_coprocessor import WiFi
 
 # pylint: disable=unused-import
 from adafruit_portalbase.network import (
-    NetworkBase,
     CONTENT_JSON,
     CONTENT_TEXT,
+    NetworkBase,
 )
+from adafruit_portalbase.wifi_coprocessor import WiFi
 
 # pylint: enable=unused-import
 

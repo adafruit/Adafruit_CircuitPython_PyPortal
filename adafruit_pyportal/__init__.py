@@ -23,15 +23,17 @@ Implementation Notes
 
 """
 
-import os
 import gc
+import os
 import time
+
 import board
-import terminalio
 import supervisor
+import terminalio
 from adafruit_portalbase import PortalBase
-from adafruit_pyportal.network import Network, CONTENT_JSON, CONTENT_TEXT
+
 from adafruit_pyportal.graphics import Graphics
+from adafruit_pyportal.network import CONTENT_JSON, CONTENT_TEXT, Network
 from adafruit_pyportal.peripherals import Peripherals
 
 __version__ = "0.0.0+auto.0"
