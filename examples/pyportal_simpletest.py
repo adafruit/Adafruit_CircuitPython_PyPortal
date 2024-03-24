@@ -6,8 +6,8 @@
 # https://learn.adafruit.com/adafruit-pyportal/internet-connect#whats-a-secrets-file-17-2
 import board
 from displayio import CIRCUITPYTHON_TERMINAL
-from adafruit_pyportal import PyPortal
 
+from adafruit_pyportal import PyPortal
 
 # Set a data source URL
 TEXT_URL = "http://wifitest.adafruit.com/testwifi/index.html"

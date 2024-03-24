@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
-
 # SPDX-FileCopyrightText: 2017 Scott Shawcroft, written for Adafruit Industries
 #
 # SPDX-License-Identifier: MIT
 
+import datetime
 import os
 import sys
-import datetime
 
 sys.path.insert(0, os.path.abspath(".."))
 
