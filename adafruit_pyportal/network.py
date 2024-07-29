@@ -120,7 +120,9 @@ class Network(NetworkBase):
             aio_key = self._get_setting("AIO_KEY")
         except KeyError as error:
             raise KeyError(
-                "\n\nOur image converter service require a login/password to rate-limit. Please register for a free adafruit.io account and place the user/key in your secrets file under 'aio_username' and 'aio_key'"
+                "\n\nOur image converter service require a login/password to rate-limit. "
+                "Please register for a free adafruit.io account and place the user/key in "
+                "your secrets file under 'aio_username' and 'aio_key'"
             ) from error
 
         return IMAGE_CONVERTER_SERVICE % (
@@ -163,11 +165,7 @@ class Network(NetworkBase):
                 if iwidth < iheight:
                     image_url = self.image_converter_url(
                         image_url,
-                        int(
-                            self._image_resize[1]
-                            * self._image_resize[1]
-                            / self._image_resize[0]
-                        ),
+                        int(self._image_resize[1] * self._image_resize[1] / self._image_resize[0]),
                         self._image_resize[1],
                     )
                 else:
@@ -187,16 +185,14 @@ class Network(NetworkBase):
                 self.wget(image_url, filename, chunk_size=chunk_size)
             except OSError as error:
                 raise OSError(
-                    """\n\nNo writable filesystem found for saving datastream. Insert an SD card or set internal filesystem to be unsafe by setting 'disable_concurrent_write_protection' in the mount options in boot.py"""
+                    """\n\nNo writable filesystem found for saving datastream.
+                    Insert an SD card or set internal filesystem to be unsafe by
+                    setting 'disable_concurrent_write_protection' in the mount options in boot.py"""
                 ) from error
             except RuntimeError as error:
                 raise RuntimeError("wget didn't write a complete file") from error
             if iwidth < iheight:
-                pwidth = int(
-                    self._image_resize[1]
-                    * self._image_resize[1]
-                    / self._image_resize[0]
-                )
+                pwidth = int(self._image_resize[1] * self._image_resize[1] / self._image_resize[0])
                 position = (
                     self._image_position[0] + int((self._image_resize[0] - pwidth) / 2),
                     self._image_position[1],

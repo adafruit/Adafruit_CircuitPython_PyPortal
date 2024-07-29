@@ -109,15 +109,11 @@ class Peripherals:
 
             if debug:
                 print("Init cursor")
-            self.mouse_cursor = Cursor(
-                board.DISPLAY, display_group=splash_group, cursor_speed=8
-            )
+            self.mouse_cursor = Cursor(board.DISPLAY, display_group=splash_group, cursor_speed=8)
             self.mouse_cursor.hide()
             self.cursor = CursorManager(self.mouse_cursor)
         else:
-            raise AttributeError(
-                "PyPortal module requires either a touchscreen or gamepad."
-            )
+            raise AttributeError("PyPortal module requires either a touchscreen or gamepad.")
 
         gc.collect()
 

@@ -233,9 +233,7 @@ class PyPortal(PortalBase):
         self.set_caption(caption_text, caption_position, caption_color)
 
         if text_font:
-            if text_position is not None and isinstance(
-                text_position[0], (list, tuple)
-            ):
+            if text_position is not None and isinstance(text_position[0], (list, tuple)):
                 num = len(text_position)
                 if not text_wrap:
                     text_wrap = [0] * num
@@ -329,9 +327,7 @@ class PyPortal(PortalBase):
                 supervisor.reload()
 
         try:
-            filename, position = self.network.process_image(
-                json_out, self.peripherals.sd_check()
-            )
+            filename, position = self.network.process_image(json_out, self.peripherals.sd_check())
             if filename and position is not None:
                 self.graphics.set_background(filename, position)
         except ValueError as error:
