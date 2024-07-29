@@ -7,12 +7,11 @@ Example to illustrate the device capability to get json data
 
 # NOTE: Make sure you've created your secrets.py file before running this example
 # https://learn.adafruit.com/adafruit-pyportal/internet-connect#whats-a-secrets-file-17-2
-import board
-from digitalio import DigitalInOut
 import adafruit_connection_manager
 import adafruit_requests
+import board
 from adafruit_esp32spi import adafruit_esp32spi
-
+from digitalio import DigitalInOut
 
 # Get wifi details and more from a secrets.py file
 try:
@@ -56,9 +55,7 @@ while not esp.is_connected:
         continue
 print("Connected to", str(esp.ssid, "utf-8"), "\tRSSI:", esp.rssi)
 print("My IP address is", esp.pretty_ip(esp.ip_address))
-print(
-    "IP lookup adafruit.com: %s" % esp.pretty_ip(esp.get_host_by_name("adafruit.com"))
-)
+print("IP lookup adafruit.com: %s" % esp.pretty_ip(esp.get_host_by_name("adafruit.com")))
 print("Ping google.com: %d ms" % esp.ping("google.com"))
 
 # esp._debug = True

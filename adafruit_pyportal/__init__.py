@@ -23,15 +23,17 @@ Implementation Notes
 
 """
 
-import os
 import gc
+import os
 import time
+
 import board
-import terminalio
 import supervisor
+import terminalio
 from adafruit_portalbase import PortalBase
-from adafruit_pyportal.network import Network, CONTENT_JSON, CONTENT_TEXT
+
 from adafruit_pyportal.graphics import Graphics
+from adafruit_pyportal.network import CONTENT_JSON, CONTENT_TEXT, Network
 from adafruit_pyportal.peripherals import Peripherals
 
 __version__ = "0.0.0+auto.0"
@@ -91,8 +93,7 @@ class PyPortal(PortalBase):
 
     """
 
-    # pylint: disable=too-many-instance-attributes, too-many-locals, too-many-branches, too-many-statements
-    def __init__(
+    def __init__(  # noqa: PLR0912,PLR0913,PLR0915 Too many branches,Too many arguments in function definition,Too many statements
         self,
         *,
         url=None,
@@ -188,10 +189,8 @@ class PyPortal(PortalBase):
 
         self.image_converter_url = self.network.image_converter_url
         self.wget = self.network.wget
-        # pylint: disable=invalid-name
         self.show_QR = self.graphics.qrcode
         self.hide_QR = self.graphics.hide_QR
-        # pylint: enable=invalid-name
 
         if hasattr(self.peripherals, "touchscreen"):
             self.touchscreen = self.peripherals.touchscreen
@@ -234,9 +233,7 @@ class PyPortal(PortalBase):
         self.set_caption(caption_text, caption_position, caption_color)
 
         if text_font:
-            if text_position is not None and isinstance(
-                text_position[0], (list, tuple)
-            ):
+            if text_position is not None and isinstance(text_position[0], (list, tuple)):
                 num = len(text_position)
                 if not text_wrap:
                     text_wrap = [0] * num
@@ -271,7 +268,6 @@ class PyPortal(PortalBase):
         gc.collect()
 
     def set_caption(self, caption_text, caption_position, caption_color):
-        # pylint: disable=line-too-long
         """A caption. Requires setting ``caption_font`` in init!
 
         :param caption_text: The text of the caption.
@@ -279,7 +275,6 @@ class PyPortal(PortalBase):
         :param caption_color: The color of your caption text. Must be a hex value, e.g.
                               ``0x808000``.
         """
-        # pylint: enable=line-too-long
         if self._debug:
             print("Setting caption to", caption_text)
 
@@ -294,7 +289,7 @@ class PyPortal(PortalBase):
         )
         self.set_text(caption_text, index)
 
-    def fetch(self, refresh_url=None, timeout=10, force_content_type=None):
+    def fetch(self, refresh_url=None, timeout=10, force_content_type=None):  # noqa: PLR0912 Too many branches
         """Fetch data from the url we initialized with, perfom any parsing,
         and display text or graphics. This function does pretty much everything
         Optionally update the URL
@@ -332,9 +327,7 @@ class PyPortal(PortalBase):
                 supervisor.reload()
 
         try:
-            filename, position = self.network.process_image(
-                json_out, self.peripherals.sd_check()
-            )
+            filename, position = self.network.process_image(json_out, self.peripherals.sd_check())
             if filename and position is not None:
                 self.graphics.set_background(filename, position)
         except ValueError as error:
