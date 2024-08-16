@@ -3,3 +3,5 @@
 # SPDX-License-Identifier: Unlicense
 
 * text eol=lf
+*.wav -text
+*.ico -text
