@@ -83,7 +83,6 @@ class Network(NetworkBase):
         image_resize=None,
         image_position=None,
         image_dim_json_path=None,
-        secrets_data=None,
     ):
         if status_neopixel:
             status_led = neopixel.NeoPixel(status_neopixel, 1, brightness=0.2)
@@ -95,7 +94,6 @@ class Network(NetworkBase):
             wifi,
             extract_values=extract_values,
             debug=debug,
-            secrets_data=secrets_data,
         )
 
         self._convert_image = convert_image
@@ -113,16 +111,16 @@ class Network(NetworkBase):
 
     def image_converter_url(self, image_url, width, height, color_depth=16):
         """Generate a converted image url from the url passed in,
-        with the given width and height. aio_username and aio_key must be
-        set in secrets."""
+        with the given width and height. ADAFRUIT_AIO_USERNAME and
+        ADAFRUIT_AIO_KEY must be set in settings.toml."""
         try:
-            aio_username = self._get_setting("AIO_USERNAME")
-            aio_key = self._get_setting("AIO_KEY")
+            aio_username = self._get_setting("ADAFRUIT_AIO_USERNAME")
+            aio_key = self._get_setting("ADAFRUIT_AIO_KEY")
         except KeyError as error:
             raise KeyError(
                 "\n\nOur image converter service require a login/password to rate-limit. "
                 "Please register for a free adafruit.io account and place the user/key in "
-                "your secrets file under 'aio_username' and 'aio_key'"
+                "your settings.toml file under 'ADAFRUIT_AIO_USERNAME' and 'ADAFRUIT_AIO_KEY'"
             ) from error
 
         return IMAGE_CONVERTER_SERVICE % (
