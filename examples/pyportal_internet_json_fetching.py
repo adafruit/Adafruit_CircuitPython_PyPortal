@@ -16,12 +16,9 @@ from adafruit_esp32spi import adafruit_esp32spi
 from digitalio import DigitalInOut
 
 # Get wifi details and more from a settings.toml file
-# tokens used by this Demo: CIRCUITPY_WIFI_SSID, CIRCUITPY_WIFI_PASSWORD,
-#                           ADAFRUIT_AIO_USERNAME, ADAFRUIT_AIO_KEY
+# tokens used by this Demo: CIRCUITPY_WIFI_SSID, CIRCUITPY_WIFI_PASSWORD
 ssid = getenv("CIRCUITPY_WIFI_SSID")
 password = getenv("CIRCUITPY_WIFI_PASSWORD")
-aio_username = getenv("ADAFRUIT_AIO_USERNAME")
-aio_key = getenv("ADAFRUIT_AIO_KEY")
 
 print("ESP32 SPI webclient test")
 
