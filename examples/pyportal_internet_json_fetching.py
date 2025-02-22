@@ -7,6 +7,8 @@ Example to illustrate the device capability to get json data
 
 # NOTE: Make sure you've created your settings.toml file before running this example
 # https://learn.adafruit.com/adafruit-pyportal/create-your-settings-toml-file
+from os import getenv
+
 import adafruit_connection_manager
 import adafruit_requests
 import board
@@ -42,10 +44,10 @@ requests = adafruit_requests.Session(pool, ssl_context)
 if esp.status == adafruit_esp32spi.WL_IDLE_STATUS:
     print("ESP32 found and in idle mode")
 print("Firmware vers.", esp.firmware_version)
-print("MAC addr:", [hex(i) for i in esp.MAC_address])
+print("MAC addr:", ":".join("%02X" % byte for byte in esp.MAC_address))
 
 for ap in esp.scan_networks():
-    print("\t%s\t\tRSSI: %d" % (str(ap["ssid"], "utf-8"), ap["rssi"]))
+    print("\t%-23s RSSI: %d" % (ap.ssid, ap.rssi))
 
 print("Connecting to AP...")
 while not esp.is_connected:
@@ -54,8 +56,8 @@ while not esp.is_connected:
     except RuntimeError as e:
         print("could not connect to AP, retrying: ", e)
         continue
-print("Connected to", str(esp.ssid, "utf-8"), "\tRSSI:", esp.rssi)
-print("My IP address is", esp.pretty_ip(esp.ip_address))
+print("Connected to", esp.ap_info.ssid, "\tRSSI:", esp.ap_info.rssi)
+print("My IP address is", esp.ipv4_address)
 print("IP lookup adafruit.com: %s" % esp.pretty_ip(esp.get_host_by_name("adafruit.com")))
 print("Ping google.com: %d ms" % esp.ping("google.com"))
 
