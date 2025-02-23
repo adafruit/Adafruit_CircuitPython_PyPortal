@@ -37,7 +37,6 @@ autodoc_mock_imports = [
     "audiocore",
     "microcontroller",
     "neopixel",
-    "secrets",
     "adafruit_sdcard",
     "storage",
     "sdcardio",

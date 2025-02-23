@@ -5,25 +5,25 @@
 Example to illustrate the device capability to get json data
 """
 
-# NOTE: Make sure you've created your secrets.py file before running this example
-# https://learn.adafruit.com/adafruit-pyportal/internet-connect#whats-a-secrets-file-17-2
+# NOTE: Make sure you've created your settings.toml file before running this example
+# https://learn.adafruit.com/adafruit-pyportal/create-your-settings-toml-file
+from os import getenv
+
 import adafruit_connection_manager
 import adafruit_requests
 import board
 from adafruit_esp32spi import adafruit_esp32spi
 from digitalio import DigitalInOut
 
-# Get wifi details and more from a secrets.py file
-try:
-    from secrets import secrets
-except ImportError:
-    print("WiFi secrets are kept in secrets.py, please add them there!")
-    raise
+# Get wifi details and more from a settings.toml file
+# tokens used by this Demo: CIRCUITPY_WIFI_SSID, CIRCUITPY_WIFI_PASSWORD
+ssid = getenv("CIRCUITPY_WIFI_SSID")
+password = getenv("CIRCUITPY_WIFI_PASSWORD")
 
 print("ESP32 SPI webclient test")
 
 TEXT_URL = "http://wifitest.adafruit.com/testwifi/index.html"
-JSON_URL = "http://api.coindesk.com/v1/bpi/currentprice/USD.json"
+JSON_URL = "http://wifitest.adafruit.com/testwifi/sample.json"
 
 
 # ESP32 Pins:
@@ -41,20 +41,20 @@ requests = adafruit_requests.Session(pool, ssl_context)
 if esp.status == adafruit_esp32spi.WL_IDLE_STATUS:
     print("ESP32 found and in idle mode")
 print("Firmware vers.", esp.firmware_version)
-print("MAC addr:", [hex(i) for i in esp.MAC_address])
+print("MAC addr:", ":".join("%02X" % byte for byte in esp.MAC_address))
 
 for ap in esp.scan_networks():
-    print("\t%s\t\tRSSI: %d" % (str(ap["ssid"], "utf-8"), ap["rssi"]))
+    print("\t%-23s RSSI: %d" % (ap.ssid, ap.rssi))
 
 print("Connecting to AP...")
 while not esp.is_connected:
     try:
-        esp.connect_AP(secrets["ssid"], secrets["password"])
+        esp.connect_AP(ssid, password)
     except RuntimeError as e:
         print("could not connect to AP, retrying: ", e)
         continue
-print("Connected to", str(esp.ssid, "utf-8"), "\tRSSI:", esp.rssi)
-print("My IP address is", esp.pretty_ip(esp.ip_address))
+print("Connected to", esp.ap_info.ssid, "\tRSSI:", esp.ap_info.rssi)
+print("My IP address is", esp.ipv4_address)
 print("IP lookup adafruit.com: %s" % esp.pretty_ip(esp.get_host_by_name("adafruit.com")))
 print("Ping google.com: %d ms" % esp.ping("google.com"))
 
