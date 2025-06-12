@@ -178,7 +178,7 @@ class PyPortal(PortalBase):
 
         # Convenience Shortcuts for compatibility
         self.peripherals = Peripherals(
-            spi, display=self.display, splash_group=self.splash, debug=debug
+            spi, display=self.display, display_group=self.root_group, debug=debug
         )
         self.set_backlight = self.peripherals.set_backlight
         self.sd_check = self.peripherals.sd_check

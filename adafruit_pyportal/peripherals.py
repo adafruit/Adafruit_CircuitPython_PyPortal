@@ -49,7 +49,7 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PyPortal.git"
 class Peripherals:
     """Peripherals Helper Class for the PyPortal Library"""
 
-    def __init__(self, spi, display, splash_group, debug=False):  # noqa: PLR0912,PLR0913 Too many branches,Too many arguments in function definition
+    def __init__(self, spi, display, display_group, debug=False):  # noqa: PLR0912,PLR0913 Too many branches,Too many arguments in function definition
         # Speaker Enable
         self._speaker_enable = DigitalInOut(board.SPEAKER_ENABLE)
         self._speaker_enable.switch_to_output(False)
@@ -109,7 +109,7 @@ class Peripherals:
 
             if debug:
                 print("Init cursor")
-            self.mouse_cursor = Cursor(board.DISPLAY, display_group=splash_group, cursor_speed=8)
+            self.mouse_cursor = Cursor(board.DISPLAY, display_group=display_group, cursor_speed=8)
             self.mouse_cursor.hide()
             self.cursor = CursorManager(self.mouse_cursor)
         else:
