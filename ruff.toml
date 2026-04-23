@@ -91,6 +91,7 @@ ignore = [
     "PLR2004", # magic-value-comparison
     "UP030", # format literals
     "PLW1514",  # unspecified-encoding
+    "PLC0415",  # import-not-at-top-level (conditional hardware imports)
 
 ]
 
